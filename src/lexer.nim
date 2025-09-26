@@ -90,7 +90,7 @@ proc newLexer*(file: string, reader: Buffer): Lexer =
   result.r = reader
   result.file = file
   result.ln = 1
-  result.col = 1
+  result.col = 0
   result.adv()
   result.adv()
 
@@ -111,7 +111,7 @@ proc adv(self: Lexer) =
 
   if self.cur == '\n' and not self.hasNext:
     inc self.ln
-    self.col = 1
+    self.col = 0
 
 func tok(self: Lexer, tt: TokenType): Token =
   Token(typ: tt, file: self.file, ln: self.ln, col: self.col)
@@ -278,6 +278,12 @@ proc lex*(self: Lexer): seq[Token] =
       self.adv()
     of ')':
       result.add(self.tok(ttParenRight))
+      self.adv()
+    of '[':
+      result.add(self.tok(ttBracketLeft))
+      self.adv()
+    of ']':
+      result.add(self.tok(ttBracketRight))
       self.adv()
     of 'a'..'z', 'A'..'Z':
       result.add(self.collectIdent())

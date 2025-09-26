@@ -62,9 +62,28 @@ func `$`*(types: set[Type]): string =
     result &= ", or "
     result &= $sTypes[^1]
 
+func `$`*(shape: Shape): string
+
+func `==`*(a, b: Shape): bool =
+  if a.len != b.len:
+    return false
+
+
+  for i in 0..<a.len:
+    if a[i] != b[i]:
+      return false
+
+  true
+
+func `!=`*(a, b: Shape): bool =
+  not (a == b)
 
 func `$`*(shape: Shape): string =
-  ($shape)[1..^1]
+  result = "⎡"
+  
+  result &= shape.mapIt($it).join(" ")
+
+  result &= "⎦"
 
 
 func newQuote*(node: Node): Value =
@@ -110,6 +129,9 @@ func real*(self: Value): float =
 
 func node*(self: Value): Node =
   self.node
+
+func shape*(self: Value): Shape =
+  self.shape
 
 func len*(self: Value): int =
   case self.typ

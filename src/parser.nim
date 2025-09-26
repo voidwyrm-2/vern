@@ -17,6 +17,7 @@ type
     ntReal,
     ntString,
     ntGrouping,
+    ntArray,
     ntQuotation,
     ntBinding
 
@@ -24,8 +25,8 @@ type
     case typ: NodeType
     of ntIdent, ntOperator, ntReal, ntString:
       tok: Token
-    of ntGrouping:
-      groupAnchor: Token
+    of ntGrouping, ntArray:
+      anchor: Token
       nodes: seq[Node]
     of ntQuotation:
       node: Node
@@ -60,8 +61,8 @@ func trace*(self: Node): string =
   case self.typ
   of ntIdent, ntOperator, ntReal, ntString:
     self.tok.trace()
-  of ntGrouping:
-    self.groupAnchor.trace()
+  of ntGrouping, ntArray:
+    self.anchor.trace()
   of ntQuotation:
     self.node.trace()
   of ntBinding:
@@ -71,7 +72,7 @@ func lit*(self: Node): string =
   case self.typ
   of ntIdent, ntOperator, ntReal, ntString: 
      self.tok.lit
-  of ntGrouping:
+  of ntGrouping, ntArray:
     "(" & self.nodes.mapIt(it.lit).join(" ") & ")"
   of ntQuotation:
     fmt"`{self.node.lit}"
@@ -85,7 +86,7 @@ proc `$`*(self: Node): string =
   case self.typ
   of ntIdent, ntOperator, ntReal, ntString: 
     result &= self.tok.min()
-  of ntGrouping:
+  of ntGrouping, ntArray:
     result &= self.nodes.mapIt($it).join(" ")
   of ntQuotation:
     result &= fmt"`{self.node}"
@@ -105,6 +106,7 @@ func peek(self: Parser): Option[ptr Token] =
     result = some(addr self.tokens[self.idx + 1])
 
 proc parseGrouping(self: Parser, anchor: ptr Token): Node
+proc parseArray(self: Parser, anchor: ptr Token): Node
 proc parseQuotation(self: Parser, anchor: ptr Token): Node
 proc parseBinding(self: Parser, name: ptr Token): Node
 
@@ -130,6 +132,8 @@ proc parseItem(self: Parser, topLevel: bool = false): Node =
     result = self.parseQuotation(tok)
   of ttParenLeft:
     result = self.parseGrouping(tok)
+  of ttBracketLeft:
+    result = self.parseArray(tok)
   else:
     let e = newVernError(fmt"Unexpected token '{tok[].lit}'")
     e.addTrace(tok[].trace())
@@ -144,7 +148,7 @@ proc parseQuotation(self: Parser, anchor: ptr Token): Node =
 
 proc parseGrouping(self: Parser, anchor: ptr Token): Node =
   result = Node(typ: ntGrouping)
-  result.groupAnchor = anchor[]
+  result.anchor = anchor[]
 
   inc self.idx
 
@@ -156,6 +160,23 @@ proc parseGrouping(self: Parser, anchor: ptr Token): Node =
     inc self.idx
 
   let e = newVernError(fmt"Expected ')' to close grouping")
+  e.addTrace(anchor[].trace())
+  raise e
+
+proc parseArray(self: Parser, anchor: ptr Token): Node =
+  result = Node(typ: ntArray)
+  result.anchor = anchor[]
+
+  inc self.idx
+
+  while self.idx < self.tokens.len:
+    if self.tokens[self.idx].typ == ttBracketRight:
+      return
+
+    result.nodes.add(self.parseItem())
+    inc self.idx
+
+  let e = newVernError(fmt"Expected ']' to close array")
   e.addTrace(anchor[].trace())
   raise e
 

@@ -1,4 +1,7 @@
+import std/sequtils
+
 import interpreter
+
 
 let builtins* = newTable[string, Binding]()
 
@@ -57,6 +60,12 @@ addP("#"):
   let val = s.pop(1)
 
   s.push(newReal(float(val.len)))
+
+# Shape/Shapeof
+addP("△"):
+  let val = s.pop(1).needs(1, tArray)
+
+  s.push(newArray(val.shape().mapIt(newReal(it.float))))
 
 # Pop
 addP("'"):

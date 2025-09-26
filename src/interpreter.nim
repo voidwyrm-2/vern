@@ -1,3 +1,8 @@
+import std/[
+  options,
+  strformat
+]
+
 import
   general,
   state,
@@ -20,9 +25,8 @@ proc newInterpreter*(state: State): Interpreter =
   new result
   result.state = state
 
-proc newInterpreter*(table: TableRef[string, Binding] = nil): Interpreter =
-  new result
-  result.state = newState(10, table)
+proc newInterpreter*(bindings: TableRef[string, Binding] = nil): Interpreter =
+  newInterpreter(newState(10, bindings))
 
 func state*(self: Interpreter): State =
   self.state
@@ -48,6 +52,24 @@ proc exec*(self: Interpreter, n: Node) =
     self.state.push(newChars(n.tok[].s))
   of ntGrouping:
     self.exec(n.nodes)
+  of ntArray:
+    let
+      substate = newState(self.state, 10)
+      intr = newInterpreter(substate)
+
+    intr.exec(n.nodes)
+
+    let items = substate.stack
+
+    var typ = none[Type]()
+
+    for item in items:
+      if typ.isNone:
+        typ = some(item.typ)
+      elif typ.get != item.typ:
+        raise newVernError(fmt"Array is of type {typ.get}, but an item of type {item.typ} was found")
+
+    self.state.push(newArray(items))
   of ntQuotation:
     self.state.push(newQuote(n.node))
   of ntBinding:

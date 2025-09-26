@@ -18,10 +18,11 @@ Fib <- `(0 1)_`(, + :)@'
 
 ## Todo
 
-- [ ] implement list syntax
+- [x] implement list syntax
 - [ ] finalize the 'pop' operator's character (currently `'`)
+- [ ] add an escape formatter for unicode characters (maybe `;\[name];`?)
 - [ ] implement the 'range' operator
-- [ ] add an escape formatter for unicode characters (maybe `\\[name]` and `\\u[num]`?)
+- [ ] implement function tacitness
 - [ ] add additional named built-in operators (à la, Uiua's `&p`, `&ffi`, etc)
 - [ ] add examples
 - [ ] implement 1D convulsion as an example

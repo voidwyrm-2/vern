@@ -34,6 +34,7 @@ type
       value: Value
 
   State* = ref object
+    parent: State
     stack: seq[Value]
     bindings: TableRef[string, Binding]
 
@@ -77,10 +78,14 @@ func `$`*(binding: Binding): string =
     $binding.value
 
 
-func newState*(cap: int, table: TableRef[string, Binding] = nil): State =
+func newState*(cap: int, bindings: TableRef[string, Binding] = nil): State =
   new result
   result.stack = newSeqOfCap[Value](cap)
-  result.bindings = table
+  result.bindings = bindings
+
+func newState*(parent: State, cap: int): State =
+  result = newState(cap, parent.bindings)
+  result.parent = parent
 
 func stack*(self: State): auto =
   self.stack
@@ -91,17 +96,18 @@ func bindings*(self: State): auto =
 proc push*(self: State, value: Value) =
   self.stack.add(value)
 
-proc pop*(self: State, arg: uint8): Value =
-  if self.stack.len == 0:
-    raise newVernError(fmt"Stack was empty when getting argument {arg}")
-
-  self.stack.pop()
-
 proc trypop*(self: State): Value =
-  if self.stack.len == 0:
-    nil
-  else:
-    self.stack.pop()
+  if self.stack.len > 0:
+    result = self.stack.pop()
+
+proc pop*(self: State, arg: uint8): Value =
+  result = self.trypop()
+
+  if result == nil and self.parent != nil:
+    result = self.parent.trypop()
+
+  if result == nil:
+    raise newVernError(fmt"Stack was empty when getting argument {arg}")
 
 proc needs*(value: Value, arg: uint8, typ: set[Type]): Value =
   result = value
