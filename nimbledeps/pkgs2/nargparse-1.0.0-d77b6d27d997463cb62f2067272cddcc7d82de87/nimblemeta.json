@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "metaData": {
+    "url": "https://github.com/voidwyrm-2/nargparse",
+    "downloadMethod": "git",
+    "vcsRevision": "eea7760bf87c90ac80d6d6be34754947a63e1d6b",
+    "files": [
+      "/nargparse.nimble",
+      "/nargparse.nim"
+    ],
+    "binaries": [],
+    "specialVersions": [
+      "1.0.0"
+    ]
+  }
+}

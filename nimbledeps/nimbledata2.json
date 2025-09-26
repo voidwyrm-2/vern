@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "reverseDeps": {
+    "nargparse": {
+      "1.0.0": {
+        "d77b6d27d997463cb62f2067272cddcc7d82de87": [
+          {
+            "path": "/Users/Projects/Nim/vern"
+          }
+        ]
+      }
+    }
+  }
+}
