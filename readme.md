@@ -5,7 +5,6 @@ An array programming language whose focus is simplicity, creating complexity fro
 ## Example
 
 ```
-
 Sum <- `+\
 
 Fac <- |1+`*\
