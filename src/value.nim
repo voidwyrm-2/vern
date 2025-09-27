@@ -17,7 +17,8 @@ type
     tQuote,
     tReal,
     tArray,
-    tChars
+    tChars,
+    tBox
 
   Shape* = seq[uint32]
 
@@ -33,6 +34,8 @@ type
       values: seq[Value]
     of tChars:
       chars: seq[char]
+    of tBox:
+      boxed: Value
 
 
 func `$`*(typ: Type): string =
@@ -45,6 +48,8 @@ func `$`*(typ: Type): string =
     "Array"
   of tChars:
     "Chars"
+  of tBox:
+    "Box"
 
 func `$`*(types: set[Type]): string =
   let sTypes = types.toSeq()
@@ -127,6 +132,22 @@ func newArray*(values: varargs[Value]): Value =
 func newChars*(chars: seq[char]): Value =
   Value(typ: tChars, chars: chars)
 
+func newBox*(value: Value): Value =
+  Value(typ: tBox, boxed: value)
+
+func default*(typ: Type): Value =
+  case typ
+  of tQuote:
+    newQuote(newEmptyNode())
+  of tReal:
+    newReal(0)
+  of tArray:
+    newArray()
+  of tChars:
+    newChars(@[])
+  of tBox:
+    newBox(newReal(0))
+
 func typ*(self: Value): Type =
   self.typ
 
@@ -136,6 +157,9 @@ func real*(self: Value): float =
 func node*(self: Value): Node =
   self.node
 
+func boxed*(self: Value): Value =
+  self.boxed
+
 func shape*(self: Value): Shape =
   case self.typ
   of tArray:
@@ -143,7 +167,7 @@ func shape*(self: Value): Shape =
   of tChars:
     @[self.chars.len.uint32]
   else:
-    raise newVernError(fmt"Cannot get the shape of type {self.typ}")
+    @[]
 
 func len*(self: Value): int =
   case self.typ
@@ -189,6 +213,7 @@ template opImpl(name: string, op: untyped) =
     maybe (_, _):
       raise newVernError("Cannot " & name & fmt" {self.typ} and {other.typ}")
 
+#[
 template opCompImpl(name: string, op: untyped) =
   select (self.typ, other.typ):
     maybe (tReal, tReal):
@@ -211,6 +236,7 @@ template opCompImpl(name: string, op: untyped) =
       result = newArray(values)
     maybe (_, _):
       result = false
+]#
 
 proc `+`*(self, other: Value): Value =
   opImpl("add", `+`)
@@ -233,8 +259,26 @@ proc `^`*(self, other: Value): Value =
 proc `==`*(self, other: Value): bool =
   false
 
-proc `≠`*(self, other: Value): bool =
+proc `!=`*(self, other: Value): bool =
   true
+
+proc copy*(self: Value): Value =
+  case self.typ
+  of tQuote:
+    newQuote(self.node)
+  of tReal:
+    newReal(self.real)
+  of tArray:
+    newArray(self.values.mapIt(it.copy()))
+  of tChars:
+    let chars = newSeq[char](self.chars.len)
+
+    if self.chars.len > 0:
+      copyMem(chars[0].addr, self.chars[0].addr, self.chars.len)
+
+    newChars(chars)
+  of tBox:
+    newBox(self.boxed.copy())
 
 func `$`*(self: Value): string =
   case self.typ
@@ -251,3 +295,5 @@ func `$`*(self: Value): string =
     "[" & self.values.mapIt($it).join(" ") & "]"
   of tChars:
     "\"" & cast[string](self.chars) & "\""
+  of tBox:
+    fmt"■{self.boxed}"

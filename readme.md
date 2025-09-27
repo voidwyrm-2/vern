@@ -1,6 +1,6 @@
 # Vern
 
-An array programming language whose focus is simplicity, creating complexity from that simplicity, and using as few non-ASCII characters as possible.
+An array programming language whose focus is simplicity, creating complexity from that simplicity.
 
 ## Example
 
@@ -9,7 +9,7 @@ Sum <- `+\
 
 Fac <- |1+`*\
 
-Fib <- `(0 1)_`(, + :)@'
+Fib <- `(0 1)_`(, + :)@⌄
 
 [1 2 3 4 5] Sum ; 15
 5 Fac ; 120
@@ -19,9 +19,11 @@ Fib <- `(0 1)_`(, + :)@'
 ## Todo
 
 - [x] implement list syntax
-- [ ] finalize the 'pop' operator's character (currently `'`)
-- [ ] add an escape formatter for unicode characters (maybe `;\[name];`?)
-- [ ] implement the 'range' operator
+- [x] finalize the 'pop' operator's character (was `'`, finalized as `⌄`)
+- [x] add an escape formatter for unicode characters (maybe `;\[name];`?)
+- [ ] get the escape formatter working with files
+- [ ] implement the 'reduce' operator
+- [ ] implement the 'range/iota' operator
 - [ ] implement function tacitness
 - [ ] add additional named built-in operators (à la, Uiua's `&p`, `&ffi`, etc)
 - [ ] add examples

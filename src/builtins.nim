@@ -50,7 +50,7 @@ addOp("^", `^`)
 
 addCompOp("=", `==`)
 
-addCompOp("≠", `≠`)
+addCompOp("≠", `!=`)
 
 # Execute
 addP("!"):
@@ -66,12 +66,23 @@ addP("#"):
 
 # Shape/Shapeof
 addP("△"):
-  let val = s.pop(1).needs(1, tArray)
+  let val = s.pop(1)
 
   s.push(newArray(val.shape().mapIt(newReal(it.float))))
 
+# Box
+addP("■"):
+  let val = s.pop(1)
+
+  s.push(newBox(val))
+
+addP("□"):
+  let box = s.pop(1).needs(1, tBox)
+
+  s.push(box.boxed)
+
 # Pop
-addP("'"):
+addP("⌄"):
   discard s.pop(1)
 
 # Dup

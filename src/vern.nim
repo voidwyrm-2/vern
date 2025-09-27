@@ -18,7 +18,6 @@ import pkg/[
   Noise
 ]
 
-
 const
   replFilename = "repl"
   replHistoryFile = "vern_history"
@@ -28,20 +27,29 @@ const
     .split("\n")
     .mapIt((
       let entry = it.split(":");
+      var col = 21;
       let keys = entry[0]
         .split(",")
-        .mapIt(it.strip());
-      fmt"""\{keys.join(", \\")} - {entry[1].strip()}"""
+        .mapIt(it.strip())
+        .mapIt((
+          col += 6;
+          "\e[38;5;" & $col & "m" &
+          (if it.len == 1:
+            fmt"\{it}"
+          else:
+            fmt"\+{it}\") &
+            "\e[0m"
+        ));
+      fmt"""{keys.join(", ")} - {"\e[38;5;207m" & entry[1].strip() & "\e[0m"}"""
     ))
     .join("\n")
-
 
 
 proc displayStack(stack: seq[Value]) =
   var col = 28
 
   for val in stack:
-    echo "\e", "[38;5;", col, "m", val
+    echo "\e[38;5;", col, "m", val
 
     col += 4
 
@@ -81,6 +89,8 @@ proc repl() =
     i = newInterpreter(builtins.builtins)
   
   noise.setPrompt(basePrompt)
+
+  #var stateBackup: State 
   
   while true:
     if not noise.readLine():
@@ -116,7 +126,10 @@ exit - Exit the REPL
 
     if collapses > 0:
       echo "Formatted to: ", str
-  
+
+    #if line.len > 0:
+    #  stateBackup = i.state.copy()
+    
     try:
       if line.len > 0:
         let
@@ -128,6 +141,8 @@ exit - Exit the REPL
         displayStack(i.state.stack)
     except VernError as e:
       echo e
+      #if stateBackup != nil:
+      #  i.state = stateBackup
   
     hf.writeLine(line)
     noise.historyAdd(line)

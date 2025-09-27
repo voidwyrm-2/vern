@@ -39,6 +39,9 @@ type
     idx: int
 
 
+func newEmptyNode*(): Node =
+  Node(typ: ntGrouping)
+
 func typ*(self: Node): NodeType =
   self.typ
 

@@ -13,7 +13,7 @@ export state
 
 
 type Interpreter* = ref object
-    state: State
+    state*: State
 
 
 proc newInterpreter*(state: State): Interpreter =
@@ -22,9 +22,6 @@ proc newInterpreter*(state: State): Interpreter =
 
 proc newInterpreter*(bindings: TableRef[string, Binding] = nil): Interpreter =
   newInterpreter(newState(10, bindings))
-
-func state*(self: Interpreter): State =
-  self.state
 
 proc exec*(self: Interpreter, nodes: openArray[Node])
 

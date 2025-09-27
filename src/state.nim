@@ -68,6 +68,13 @@ func nodes*(binding: Binding): seq[Node] =
 func value*(binding: Binding): Value =
   binding.value
 
+func copy*(binding: Binding): Binding =
+  case binding.typ
+  of btValue:
+    initBinding(binding.value.copy())
+  else:
+    binding
+
 func `$`*(binding: Binding): string =
   case binding.typ
   of btNative:
@@ -87,11 +94,24 @@ func newState*(parent: State, cap: int): State =
   result = newState(cap, parent.bindings)
   result.parent = parent
 
+func copy*(self: State): State =
+  new result
+
+  result.stack = newSeq[Value](self.stack.len)
+
+  if self.stack.len > 0:
+    copyMem(result.stack[0].addr, self.stack[0].addr, self.stack.len)
+
+  result.bindings = newTable[string, Binding](self.bindings.len)
+
+  for (k, v) in self.bindings.pairs:
+    result.bindings[k] = v
+
 func stack*(self: State): auto =
-  self.stack
+  result = self.stack
 
 func bindings*(self: State): auto =
-  self.bindings
+  result = self.bindings
 
 proc push*(self: State, value: Value) =
   self.stack.add(value)
