@@ -57,7 +57,13 @@ type
 method readChar*(self: Buffer): char {.base.} =
   discard
 
+method size*(self: Buffer): int64 {.base.} =
+  discard
+
 method endOfFile*(self: Buffer): bool {.base.} =
+  discard
+
+method close*(self: Buffer) {.base.} =
   discard
 
 
@@ -68,8 +74,14 @@ func newFileBuffer*(f: File): FileBuffer =
 method readChar*(self: FileBuffer): char =
   self.f.readChar()
 
+method size*(self: FileBuffer): int64 =
+  self.f.getFileSize
+
 method endOfFile*(self: FileBuffer): bool =
-  self.f.endOfFile()
+  self.f.endOfFile
+
+method close*(self: FileBuffer) =
+  self.f.close()
 
 
 func newStringBuffer*(str: string): StringBuffer =
@@ -81,6 +93,9 @@ method readChar*(self: StringBuffer): char =
     result = self.str[self.idx]
 
   inc self.idx
+
+method size*(self: StringBuffer): int64 =
+  self.str.len.int64
 
 method endOfFile*(self: StringBuffer): bool =
   self.idx > self.str.len

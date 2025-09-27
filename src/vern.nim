@@ -1,6 +1,8 @@
 import std/[
   os,
-  strutils
+  strutils,
+  sequtils,
+  strformat
 ]
 
 import
@@ -8,7 +10,8 @@ import
   lexer,
   parser,
   interpreter,
-  builtins
+  builtins,
+  preprocessing
 
 import pkg/[
   nargparse,
@@ -16,7 +19,22 @@ import pkg/[
 ]
 
 
-const replHistoryFile = "vern_history"
+const
+  replFilename = "repl"
+  replHistoryFile = "vern_history"
+
+  shortcutHelp = staticRead("data/unicode_shortcuts.map")
+    .strip()
+    .split("\n")
+    .mapIt((
+      let entry = it.split(":");
+      let keys = entry[0]
+        .split(",")
+        .mapIt(it.strip());
+      fmt"""\{keys.join(", \\")} - {entry[1].strip()}"""
+    ))
+    .join("\n")
+
 
 
 proc displayStack(stack: seq[Value]) =
@@ -75,20 +93,34 @@ proc repl() =
       echo """
 
 help - Show this message
+shortcuts - List the glyph shortcuts
 clear - Clear the stack
 exit - Exit the REPL
 """
+      continue
+    of "shortcuts":
+      echo "\n", shortcutHelp, "\n"
       continue
     of "clear":
       i.state.clearStack()
       continue
     of "exit":
       break
+
+    let (str, collapses) =
+      try:
+        collapseEscapes(replFilename, line)
+      except VernError as e:
+        echo e
+        continue
+
+    if collapses > 0:
+      echo "Formatted to: ", str
   
     try:
       if line.len > 0:
         let
-          l = newLexer("repl", newStringBuffer(line))
+          l = newLexer(replFilename, newStringBuffer(str))
           p = newParser(l.lex())
         
         i.exec(p.parse())
@@ -136,6 +168,14 @@ proc main() =
     quit 1
 
   let filepath = args[0]
+
+  #[
+  try:
+    collapseFileEscapes(filepath)
+  except VernError as e:
+    echo e
+    quit 1
+  ]#
 
   var f: File
   if not open(f, filepath):

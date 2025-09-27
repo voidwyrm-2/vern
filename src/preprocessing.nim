@@ -1,25 +1,61 @@
-import std/strformat
+import std/[
+  strformat,
+  strutils,
+  sequtils,
+  macros
+]
 
 import general
 
 
-proc collapseEscapes*(filepath: string) =
-  var fIn: File
+macro switchOnMap(error: untyped): untyped =
+  let
+    inop = newTree(nnkAccQuoted, ident"in")
 
-  if not fIn.open(filepath):
-    raise newVernError(fmt"Cannot open file '{filepath}' for reading")
-    
-  defer: fIn.close()
+    entries: seq[tuple[keys: seq[string], glyph: string]] = staticRead("data/unicode_shortcuts.map")
+    .strip()
+    .split("\n")
+    .mapIt((
+      let entry = it.split(":");
+      let keys = entry[0]
+        .split(",")
+        .mapIt(it.strip());
+      (keys, entry[1].strip())
+    ))
+
+  var ifcases = newSeqOfCap[tuple[cond, body: NimNode]](entries.len)
+
+  for (keys, glyph) in entries:
+    ifcases.add((
+      newCall(
+        inop,
+        ident"name",
+        newLit(keys)
+      ),
+      newAssignment(ident"result", newLit(glyph))
+    ))
+
+  result = newIfStmt(ifcases)
+
+  result.add(newTree(nnkElse, error))
+
+
+func getGlyph(name: string): string =
+  switchOnMap:
+    raise newVernError(fmt"Unknown glyph escape '{name}'")
+
+proc collapseEscapes*(file: string, buf: Buffer): tuple[buf: seq[char], collapses: uint64] =
+  result.buf = newSeqOfCap[char](buf.size)
 
   var
-    buf = newSeqOfCap[char](fIn.getFileSize)
     ln = 1
     col = 0
+    inString = false
     next: char
     cur: char
 
-  if not fIn.endOfFile:
-    next = fIn.readChar()
+  if not buf.endOfFile:
+    next = buf.readChar()
 
   proc cycle() =
     inc col
@@ -29,38 +65,61 @@ proc collapseEscapes*(filepath: string) =
       inc ln
       col = 0
 
-    if not fIn.endOfFile:
-      next = fIn.readChar
+    if not buf.endOfFile:
+      next = buf.readChar()
 
-  while not fIn.endOfFile:
+  while not buf.endOfFile:
     cycle()
 
-    if cur == ';' and next == '\\':
-      var sName = newSeqOfCap[char](20)
-
+    if inString:
+      if cur == '\\':
+        cycle()
+      elif cur == '"':
+        inString = false
+    elif cur == '"':
+      inString = true
+    elif cur == '\\' and (next in {'a'..'z'} or next == '+'):
       cycle()
-      cycle()
+      
+      var name: string
 
-      while not fIn.endOfFile and cur != ';':
-        sName.add(cur)
+      if cur == '+':
+        name = newStringOfCap(10)
+
         cycle()
 
-      cycle()
-
-      let name = cast[string](sName)
-
-      if sName.len == 0:
-        raise newVernError("Glyph escape names cannot be empty")
-
-      case name
-      of "rep", "repeat":
-        let chars = cast[seq[char]]("◯")
-        buf.add(chars)
+        while not buf.endOfFile and cur != '\\':
+          name &= cur
+          cycle()
       else:
-        raise newVernError(fmt"Uknown glyph escape name '{name}'")
+        name = $cur
+
+      let glyph =
+        try:
+          getGlyph(name)
+        except VernError as e:
+          e.addTrace(fmt"at {file}:{ln}:{col}")
+          raise e
+      
+      result.buf.add(cast[seq[char]](glyph))
+      inc result.collapses
     else:
-      buf.add(cur)
+      result.buf.add(cur)
 
-  fIn.close()
+proc collapseEscapes*(file, str: string): tuple[str: string, collapses: uint64] =
+  let res = collapseEscapes(file, newStringBuffer(str))
 
-  filepath.writeFile(cast[seq[byte]](buf))
+  (cast[string](res.buf), res.collapses)
+
+proc collapseEscapes*(filepath: string) =
+  var f: File
+
+  if not f.open(filepath):
+    raise newVernError(fmt"Cannot open file '{filepath}' for reading")
+    
+  try:
+    let res = collapseEscapes(filepath, newFileBuffer(f))
+    f.close()
+    filepath.writeFile cast[seq[byte]](res.buf)
+  finally:
+    f.close()

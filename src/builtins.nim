@@ -19,16 +19,19 @@ template addS(name, body: string) =
 template addOp(name: string, op: untyped) =
   addP(name):
     let
-      b = s.pop(2)
-      a = s.pop(1)
+      b = s.pop(1)
+      a = s.pop(2)
   
     s.push(op(a, b))
 
 template addCompOp(name: string, op: untyped) =
   addP(name):
     let
-      b = s.pop(2)
-      a = s.pop(1)
+      b = s.pop(1)
+      a = s.pop(2)
+
+    echo "A: ", a
+    echo "B: ", b
   
     s.push(if op(a, b): newReal(1) else: newReal(0))
 
@@ -85,8 +88,8 @@ addS(","):
 # Swap
 addP(":"):
   let
-    a = s.pop(2)
-    b = s.pop(1)
+    a = s.pop(1)
+    b = s.pop(2)
 
   s.push(a)
   s.push(b)
@@ -94,8 +97,8 @@ addP(":"):
 # Dip
 addP("_"):
   let
-    quot = s.pop(2).needs(2, tQuote)
-    val = s.pop(1)
+    quot = s.pop(1).needs(1, tQuote)
+    val = s.pop(2)
 
   defer: s.push(val)
 
@@ -104,8 +107,8 @@ addP("_"):
 # Repeat
 addP("@"):
   let
-    quot = s.pop(2).needs(2, tQuote)
-    amount = s.pop(1).natural(1)
+    quot = s.pop(1).needs(1, tQuote)
+    amount = s.pop(2).natural(2)
 
     substate = newState(intr.state, 5)
     subintr = newInterpreter(substate)

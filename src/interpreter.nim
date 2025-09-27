@@ -66,8 +66,8 @@ proc exec*(self: Interpreter, n: Node) =
     
     if body.len == 0:
       let
-        val = self.state.trypop()
-        binding = if val == nil: initBinding(body) else: initBinding(val)
+        (val, ok) = self.state.trypop()
+        binding = if not ok: initBinding(body) else: initBinding(val)
 
       self.state.set(name, binding)
     else:

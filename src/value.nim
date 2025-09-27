@@ -137,7 +137,13 @@ func node*(self: Value): Node =
   self.node
 
 func shape*(self: Value): Shape =
-  self.shape
+  case self.typ
+  of tArray:
+    self.shape
+  of tChars:
+    @[self.chars.len.uint32]
+  else:
+    raise newVernError(fmt"Cannot get the shape of type {self.typ}")
 
 func len*(self: Value): int =
   case self.typ

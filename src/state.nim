@@ -96,17 +96,18 @@ func bindings*(self: State): auto =
 proc push*(self: State, value: Value) =
   self.stack.add(value)
 
-proc trypop*(self: State): Value =
+proc trypop*(self: State): (Value, bool) =
   if self.stack.len > 0:
-    result = self.stack.pop()
+    result = (self.stack.pop(), true)
 
 proc pop*(self: State, arg: uint8): Value =
-  result = self.trypop()
+  var ok: bool
+  (result, ok) = self.trypop()
 
-  if result == nil and self.parent != nil:
-    result = self.parent.trypop()
+  if not ok and self.parent != nil:
+    (result, ok) = self.parent.trypop()
 
-  if result == nil:
+  if not ok:
     raise newVernError(fmt"Stack was empty when getting argument {arg}")
 
 proc clearStack*(self: State) =

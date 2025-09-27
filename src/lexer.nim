@@ -96,10 +96,9 @@ proc newLexer*(file: string, reader: Buffer): Lexer =
 
 proc readChar(self: Lexer): char =
   result = self.r.readChar()
-  self.hasNext = self.r.endOfFile()
+  self.hasNext = self.r.endOfFile
 
 proc adv(self: Lexer) =
-
   self.cur = self.next
 
   inc self.col
@@ -246,21 +245,25 @@ proc collectUnicode(self: Lexer, len: uint): Token =
   result.ln = self.ln
   result.col = self.col
 
-  var buf = newSeq[char](len + 1)
+  var buf = newStringOfCap(len + 1)
 
-  buf[0] = self.cur
+  buf &= self.cur
 
   self.adv()
 
   for i in 1..len:
     if self.eof:
-      self.col -= len
-      self.err(fmt"Incomplete unicode character of length {len}")
+      break
 
-    buf[i] = self.cur
+    buf &= self.cur
     self.adv()
 
-  result.name = cast[string](buf)
+  self.col -= len + 1
+
+  if uint(buf.len) < len:
+    self.err(fmt"Incomplete unicode character of length {len}")
+  
+  result.name = buf
 
 proc lex*(self: Lexer): seq[Token] =
   while not self.eof:
@@ -296,6 +299,8 @@ proc lex*(self: Lexer): seq[Token] =
     of 240.char:
       result.add(self.collectUnicode(3))
     of 226.char:
+      result.add(self.collectUnicode(2))
+    of 201.char:
       result.add(self.collectUnicode(2))
     else:
       if ch > 127.char:
