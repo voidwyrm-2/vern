@@ -20,7 +20,7 @@ Fib <- `(0 1)_`(, + :)@⌄
 
 - [x] implement list syntax
 - [x] finalize the 'pop' operator's character (was `'`, finalized as `⌄`)
-- [x] add an escape formatter for unicode characters (maybe `;\[name];`?)
+- [x] add an escape formatter for unicode characters (in the form of `\[char]` and `\+[name]\`)
 - [ ] get the escape formatter working with files
 - [ ] implement the 'reduce' operator
 - [ ] implement the 'range/iota' operator
