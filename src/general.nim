@@ -37,10 +37,11 @@ func addTrace*(self: VernError, trace: string) =
   self.stackTrace.add(trace)
 
 func `$`*(self: VernError): string =
-  result = self.msg
+  result = "Error: "
+  result &= self.msg
 
   if self.stackTrace.len > 0:
-    result &= "\nStacktrace:\n" & self.stackTrace.join("\n")
+    result &= "\nStacktrace:\n " & self.stackTrace.join("\n ")
 
 
 type

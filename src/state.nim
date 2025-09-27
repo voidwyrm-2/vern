@@ -109,6 +109,9 @@ proc pop*(self: State, arg: uint8): Value =
   if result == nil:
     raise newVernError(fmt"Stack was empty when getting argument {arg}")
 
+proc clearStack*(self: State) =
+  self.stack.setLen(0)
+
 proc needs*(value: Value, arg: uint8, typ: set[Type]): Value =
   result = value
 
