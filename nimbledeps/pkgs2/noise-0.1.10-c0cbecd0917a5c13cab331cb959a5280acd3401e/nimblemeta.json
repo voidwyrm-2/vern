@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "metaData": {
+    "url": "https://github.com/jangko/nim-noise",
+    "downloadMethod": "git",
+    "vcsRevision": "1062d35d38fcd4d8a3bcdee3003381e639786edf",
+    "files": [
+      "/noise/basic.nim",
+      "/noise/styler.nim",
+      "/noise/winio.nim",
+      "/noise/editorImpl.nim",
+      "/noise.nim",
+      "/noise/prompt.nim",
+      "/noise/history.nim",
+      "/noise/posixio.nim",
+      "/noise/killring.nim",
+      "/noise.nimble",
+      "/noise/lineImpl.nim",
+      "/noise/wtf8.nim",
+      "/noise/wcwidth.nim"
+    ],
+    "binaries": [],
+    "specialVersions": [
+      "0.1.10"
+    ]
+  }
+}

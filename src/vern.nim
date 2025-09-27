@@ -5,7 +5,8 @@ import
   lexer,
   parser,
   interpreter,
-  builtins
+  builtins,
+  preprocessing
 
 import pkg/nargparse
 
@@ -40,12 +41,14 @@ proc main() =
     echo "No input files given"
     quit 1
 
+  let filepath = args[0]
+
   var f: File
-  if not open(f, args[0]):
-    echo "File '", args[0], "' could not be opened"
+  if not open(f, filepath):
+    echo "File '", filepath, "' could not be opened"
     quit 1
 
-  let l = newLexer(args[0], newFileBuffer(f))
+  let l = newLexer(filepath, newFileBuffer(f))
 
   let tokens =
     try:

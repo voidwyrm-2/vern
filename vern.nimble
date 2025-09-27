@@ -13,3 +13,4 @@ bin           = @["vern"]
 requires "nim >= 2.2.4"
 
 requires "nargparse >= 1.0.0"
+requires "noise >= 0.1.10"

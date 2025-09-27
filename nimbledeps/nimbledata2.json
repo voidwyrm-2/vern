@@ -9,6 +9,15 @@
           }
         ]
       }
+    },
+    "noise": {
+      "0.1.10": {
+        "c0cbecd0917a5c13cab331cb959a5280acd3401e": [
+          {
+            "path": "/Users/Projects/Nim/vern"
+          }
+        ]
+      }
     }
   }
 }

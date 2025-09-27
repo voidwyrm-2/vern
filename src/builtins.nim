@@ -107,5 +107,12 @@ addP("@"):
     quot = s.pop(2).needs(2, tQuote)
     amount = s.pop(1).natural(1)
 
+    substate = newState(intr.state, 5)
+    subintr = newInterpreter(substate)
+
   for _ in 0..<amount:
-    intr.exec(quot.node)
+    subintr.exec(quot.node)
+
+  let items = substate.stack
+
+  s.push(newArray(items))

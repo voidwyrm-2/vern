@@ -92,12 +92,18 @@ func newQuote*(node: Node): Value =
 func newReal*(real: float): Value =
   Value(typ: tReal, real: real)
 
-func getShapeOfValues(shape: var seq[uint32], values: seq[Value], ) =
+func getInfoOfValues(typ: var Option[Type], shape: var seq[uint32], values: seq[Value], ) =
   shape.add(uint32(values.len))
+
+  for value in values:
+    if typ.isNone:
+      typ = some(value.typ)
+    elif typ.get != value.typ:
+      raise newVernError(fmt"Array is of type {typ.get}, but an item of type {value.typ} was found")
 
   if values.len > 0 and values[0] != nil:
     if values[0].typ == tArray:
-      shape.getShapeOfValues(values[0].values)
+      typ.getInfoOfValues(shape, values[0].values)
     elif values[0].typ == tChars:
       shape.add(uint32(values[0].chars.len))
 
@@ -111,7 +117,7 @@ func newArray*(values: varargs[Value]): Value =
   if sValues.len > 0 and sValues[0] != nil:
     arrTyp = some(sValues[0].typ)
 
-  shape.getShapeOfValues(sValues)
+  arrTyp.getInfoOfValues(shape, sValues)
 
   if shape.len == 0:
     shape.add(0)

@@ -1,8 +1,3 @@
-import std/[
-  options,
-  strformat
-]
-
 import
   general,
   state,
@@ -54,20 +49,12 @@ proc exec*(self: Interpreter, n: Node) =
     self.exec(n.nodes)
   of ntArray:
     let
-      substate = newState(self.state, 10)
+      substate = newState(self.state, 5)
       intr = newInterpreter(substate)
 
     intr.exec(n.nodes)
 
     let items = substate.stack
-
-    var typ = none[Type]()
-
-    for item in items:
-      if typ.isNone:
-        typ = some(item.typ)
-      elif typ.get != item.typ:
-        raise newVernError(fmt"Array is of type {typ.get}, but an item of type {item.typ} was found")
 
     self.state.push(newArray(items))
   of ntQuotation:

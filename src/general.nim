@@ -3,7 +3,8 @@ import std/[
   sequtils,
   options,
   macros,
-  strformat
+  strformat,
+  os
 ]
 
 
@@ -16,6 +17,13 @@ const langVersion* = staticRead("../vern.nimble")
 
 func panic*(msg: string) =
   raise newException(Defect, msg)
+
+
+proc pathToCache*(): string =
+  result = getCacheDir("vern")
+
+  if not result.dirExists():
+    result.createDir()
 
 
 type

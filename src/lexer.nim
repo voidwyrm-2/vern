@@ -99,6 +99,7 @@ proc readChar(self: Lexer): char =
   self.hasNext = self.r.endOfFile()
 
 proc adv(self: Lexer) =
+
   self.cur = self.next
 
   inc self.col
@@ -239,7 +240,7 @@ proc collectString(self: Lexer): Token =
 
   result.s = buf
 
-proc collectUnicode(self: Lexer, len: int): Token =
+proc collectUnicode(self: Lexer, len: uint): Token =
   result = Token(typ: ttOperator)
   result.file = self.file
   result.ln = self.ln
@@ -253,6 +254,7 @@ proc collectUnicode(self: Lexer, len: int): Token =
 
   for i in 1..len:
     if self.eof:
+      self.col -= len
       self.err(fmt"Incomplete unicode character of length {len}")
 
     buf[i] = self.cur
@@ -291,12 +293,12 @@ proc lex*(self: Lexer): seq[Token] =
       result.add(self.collectReal())
     of '"':
       result.add(self.collectString())
-    of char(240):
+    of 240.char:
       result.add(self.collectUnicode(3))
-    of char(226):
+    of 226.char:
       result.add(self.collectUnicode(2))
     else:
-      if ch > char(127):
+      if ch > 127.char:
         self.err(fmt"Illegal character '{self.cur}'")
           
       if ch == '<' and self.next == '-':
