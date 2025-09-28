@@ -14,12 +14,13 @@ type
     ttString,
     ttQuote,
     ttDefine
+    ttDebug,
     ttParenLeft,
     ttParenRight,
     ttBracketLeft,
     ttBracketRight
     ttBraceLeft,
-    ttBraceRight,
+    ttBraceRight
 
   Token* = object
     file: string
@@ -60,6 +61,8 @@ func lit*(t: Token): string =
       "`"
     of ttDefine:
       "<-"
+    of ttDebug:
+      "?"
     of ttParenLeft:
       "("
     of ttParenRight:
@@ -190,7 +193,7 @@ proc collectString(self: Lexer): Token =
   
   while not self.eof:
     let ch = self.cur
-
+    
     if escaped:
       buf.add:
         case ch
@@ -289,6 +292,9 @@ proc lex*(self: Lexer): seq[Token] =
       self.adv()
     of ']':
       result.add(self.tok(ttBracketRight))
+      self.adv()
+    of '?':
+      result.add(self.tok(ttDebug))
       self.adv()
     of 'a'..'z', 'A'..'Z':
       result.add(self.collectIdent())

@@ -3,7 +3,8 @@ import std/[
   options,
   strformat,
   strutils,
-  math
+  math,
+  macros
 ]
 
 import
@@ -16,6 +17,7 @@ type
   Type* {.size: 1.} = enum
     tQuote,
     tReal,
+    tChar,
     tArray,
     tChars,
     tBox
@@ -28,6 +30,8 @@ type
       node: Node
     of tReal:
       real: float
+    of tChar:
+      char: char
     of tArray:
       arrTyp: Option[Type]
       shape: Shape
@@ -44,6 +48,8 @@ func `$`*(typ: Type): string =
     "Quote"
   of tReal:
     "Real"
+  of tChar:
+    "Char"
   of tArray:
     "Array"
   of tChars:
@@ -97,18 +103,37 @@ func newQuote*(node: Node): Value =
 func newReal*(real: float): Value =
   Value(typ: tReal, real: real)
 
-func getInfoOfValues(typ: var Option[Type], shape: var seq[uint32], values: seq[Value], ) =
+func newChar*(char: char): Value =
+  Value(typ: tChar, char: char)
+
+proc getTypeOfValues(typ: var Option[Type], value: Value) =
+  if value.typ == tArray:
+    if value.values.len > 0:
+      typ.getTypeOfValues(value.values[0])
+  else:
+    typ = some(value.typ)
+
+func shape*(self: Value): Shape
+
+proc getShapeOfValues(shape: var seq[uint32], typ: Type, values: seq[Value]) =
   shape.add(uint32(values.len))
+  
+  var prevShape: Shape
+
+  if values.len > 0:
+    prevShape = values[0].shape()
 
   for value in values:
-    if typ.isNone:
-      typ = some(value.typ)
-    elif typ.get != value.typ:
-      raise newVernError(fmt"Array is of type {typ.get}, but an item of type {value.typ} was found")
+    if typ != value.typ and value.typ != tArray:
+      raise newVernError(fmt"Array is of type {typ}, but an item of type {value.typ} was found")
+    elif value.typ == tArray and prevShape.len != value.shape.len:
+      raise newVernError(fmt"Cannot combine arrays of ranks {prevShape.len} and {value.shape.len}")
+    elif value.typ == tArray and prevShape != value.shape:
+      raise newVernError(fmt"Cannot combine arrays of shapes {prevShape} and {value.shape}")
 
   if values.len > 0 and values[0] != nil:
     if values[0].typ == tArray:
-      typ.getInfoOfValues(shape, values[0].values)
+      shape.getShapeOfValues(typ, values[0].values)
     elif values[0].typ == tChars:
       shape.add(uint32(values[0].chars.len))
 
@@ -116,18 +141,21 @@ func newArray*(values: varargs[Value]): Value =
   let sValues = values.toSeq()
 
   var
-    arrTyp = none[Type]()
+    arrTyp: Option[Type]
     shape: seq[uint32]
 
   if sValues.len > 0 and sValues[0] != nil:
-    arrTyp = some(sValues[0].typ)
+    arrTyp.getTypeOfValues(sValues[0])
 
-  arrTyp.getInfoOfValues(shape, sValues)
+    shape.getShapeOfValues(arrTyp.get, sValues)
 
   if shape.len == 0:
     shape.add(0)
 
   Value(typ: tArray, arrTyp: arrTyp, shape: shape, values: sValues)
+
+func newArray*(values: seq[Value], typ: Type, shape: Shape): Value =
+  Value(typ: tArray, arrTyp: some(typ), shape: shape, values: values)
 
 func newChars*(chars: seq[char]): Value =
   Value(typ: tChars, chars: chars)
@@ -138,9 +166,11 @@ func newBox*(value: Value): Value =
 func default*(typ: Type): Value =
   case typ
   of tQuote:
-    newQuote(newEmptyNode())
+    newQuote(parser.newEmptyNode())
   of tReal:
     newReal(0)
+  of tChar:
+    newChar(0.char)
   of tArray:
     newArray()
   of tChars:
@@ -151,11 +181,14 @@ func default*(typ: Type): Value =
 func typ*(self: Value): Type =
   self.typ
 
+func node*(self: Value): Node =
+  self.node
+
 func real*(self: Value): float =
   self.real
 
-func node*(self: Value): Node =
-  self.node
+func values*(self: Value): seq[Value] =
+  self.values
 
 func boxed*(self: Value): Value =
   self.boxed
@@ -169,6 +202,9 @@ func shape*(self: Value): Shape =
   else:
     @[]
 
+func rank*(self: Value): int =
+  self.shape.len
+
 func len*(self: Value): int =
   case self.typ
   of tArray:
@@ -177,6 +213,29 @@ func len*(self: Value): int =
     self.chars.len
   else:
     1
+
+func `[]`*(self: Value, ind: int): Value =
+  if self.rank == 0:
+    raise newVernError("Cannot index into rank 0 array")
+  elif ind >= self.len:
+    raise newVernError(fmt"Index {ind} is out of bounds for length {self.len}")
+
+  if self.typ == tChars:
+    newChar(self.chars[ind])
+  else:
+    self.values[ind]
+
+func `[]`*(self: Value, ind: BackwardsIndex): Value =
+  let realInd = self.len - ind.int
+
+  if realInd < 0:
+    raise newVernError(fmt"Backwards index {ind.int} is out of bounds")
+
+  self[realInd]
+
+iterator withValues*(self: Value): Value =
+  for value in self.values:
+    yield value
 
 template opImpl(name: string, op: untyped) =
   select (self.typ, other.typ):
@@ -238,6 +297,49 @@ template opCompImpl(name: string, op: untyped) =
       result = false
 ]#
 
+func `$`*(self: Value): string
+
+func join*(self, other: Value): Value =
+  template boxedJoin(boxed, nonboxed: Value): untyped =
+    result = newArray(@[boxed, newBox(nonboxed)], tBox, @[2u32])
+
+  select (self.typ, other.typ):
+    maybe (tArray, tArray):
+      if self.rank != other.rank:
+        raise newVernError(fmt"Cannot join arrays of rank {self.rank} and {other.rank}")
+
+      var arr = newSeq[Value](self.len + other.len)
+      
+      arr.add(self.values)
+      arr.add(other.values)
+
+      result = newArray(arr)
+    maybe (tArray, _):
+      var arr = newSeqOfCap[Value](self.len + 1)
+
+      arr.add(self.values)
+      arr.add(other)
+  
+      result = newArray(arr)
+    maybe (_, tArray):
+      var arr = newSeqOfCap[Value](self.len + 1)
+
+      arr.add(self)
+      arr.add(other.values)
+      
+      result = newArray(arr)
+    maybe (tBox, tBox):
+      result = newArray(@[self, other], tBox, @[2u32])
+    maybe (tBox, _):
+      boxedJoin(self, other)
+    maybe (_, tBox):
+      boxedJoin(other, self)
+    maybe (_, _):
+      if self.typ != other.typ:
+        raise newVernError(fmt"Cannot join types {self.typ} and {other.typ}")
+      
+      result = newArray(self, other)
+
 proc `+`*(self, other: Value): Value =
   opImpl("add", `+`)
 
@@ -268,6 +370,8 @@ proc copy*(self: Value): Value =
     newQuote(self.node)
   of tReal:
     newReal(self.real)
+  of tChar:
+    newChar(self.char)
   of tArray:
     newArray(self.values.mapIt(it.copy()))
   of tChars:
@@ -291,6 +395,8 @@ func `$`*(self: Value): string =
       str[0..^3]
     else:
       str
+  of tChar:
+    fmt"'{self.char}"
   of tArray:
     "[" & self.values.mapIt($it).join(" ") & "]"
   of tChars:

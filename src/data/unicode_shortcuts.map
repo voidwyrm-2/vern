@@ -1,10 +1,14 @@
 iota, io, i: ɩ
-shape, sha, sh, s: △
+shape, sha, sh: △
+scan, sca, sc, s: ⍀
 notequal, neq, n: ≠
 pop, po, p: ⌄
 box, bo, b: ■
 unbox, unbo, un, u: □
-index, ind: ○
+index, ind: ∈
 first, fir, f: ⊢
 last, la, l: ⊣
 decapitate, decapit, decap, de, d: ⥂
+join, joi, jo, j: ⋈
+identity, iden, id: ●
+modulo, modu, mod, m: ◿

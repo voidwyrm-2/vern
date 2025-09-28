@@ -1,6 +1,8 @@
 import std/sequtils
 
-import interpreter
+import
+  general,
+  interpreter
 
 
 let builtins* = newTable[string, Binding]()
@@ -42,9 +44,9 @@ addOp("-", `-`)
 
 addOp("*", `*`)
 
-addOp("/", `/`)
+addOp("%", `/`)
 
-addOp("%", `mod`)
+addOp("◿", `mod`)
 
 addOp("^", `^`)
 
@@ -69,6 +71,10 @@ addP("△"):
   let val = s.pop(1)
 
   s.push(newArray(val.shape().mapIt(newReal(it.float))))
+
+# Identity
+addP("●"):
+  s.push(s.pop(1))
 
 # Box
 addP("■"):
@@ -131,3 +137,93 @@ addP("@"):
   let items = substate.stack
 
   s.push(newArray(items))
+
+# First
+addP("⊢"):
+  let arr = s.pop(1).needs(1, tArray)
+
+  s.push(arr[0])
+
+# Last
+addP("⊣"):
+  let arr = s.pop(1).needs(1, tArray)
+
+  s.push(arr[^1])
+
+# Reduce
+addP("/"):
+  let
+    quot = s.pop(1).needs(1, tQuote)
+    arr = s.pop(2).needs(2, tArray)
+    even = arr.len mod 2 != 0
+
+    substate = newState(intr.state, 2)
+    subintr = newInterpreter(substate)
+
+  # TODO: check if quotation signature is 2.1 here
+  
+  if arr.len > 0:
+    if even:
+      substate.push(arr[0])
+    else:
+      substate.push(arr[0].typ.default)
+
+  for value in (if even: arr.values[1..^1] else: arr.values):
+    substate.push(value)
+    subintr.exec(quot.node)
+
+  let stack = substate.stack
+
+  if stack.len == 0:
+    raise newVernError("Stack must have at least value after reducing")
+
+  s.push(stack[^1])
+
+# Scan
+addP("⍀"):
+  let
+    quot = s.pop(1).needs(1, tQuote)
+    arr = s.pop(2).needs(2, tArray)
+    even = arr.len mod 2 == 0
+
+    substate = newState(intr.state, 2)
+    subintr = newInterpreter(substate)
+
+  # TODO: check if quotation signature is 2.1 here
+  
+  if arr.len > 0:
+    if even:
+      substate.push(arr[0])
+    else:
+      substate.push(arr[0].typ.default)
+
+  var first = true
+
+  for value in (if even: arr.values[1..^1] else: arr.values):
+    if first:
+      first = false
+    else:
+      let item = substate.pop(0)
+      substate.push(item)
+      substate.push(item)
+
+    substate.push(value)
+    subintr.exec(quot.node)
+
+  let stack = substate.stack
+
+  if stack.len == 0:
+    raise newVernError("Stack must have at least value after reducing")
+
+  s.push(newArray(substate.stack))
+
+addS("ɩ"):
+  "`1@`+⍀"
+
+# Join
+addP("⋈"):
+  let
+    b = s.pop(1)
+    a = s.pop(2)
+
+  s.push(a.join(b))

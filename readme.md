@@ -5,14 +5,14 @@ An array programming language whose focus is simplicity, creating complexity fro
 ## Example
 
 ```
-Sum <- `+\
+Sum <- `+/
 
-Fac <- |1+`*\
+Fac <- ɩ1:⋈`*⍀
 
-Fib <- `(0 1)_`(, + :)@⌄
+Fib <- `(0 1)_ `(, + : ?)@⊢
 
 [1 2 3 4 5] Sum ; 15
-5 Fac ; 120
+5 Fac ; [1 2 6 24 120]
 11 Fib ; 89
 ```
 
@@ -21,9 +21,10 @@ Fib <- `(0 1)_`(, + :)@⌄
 - [x] implement list syntax
 - [x] finalize the 'pop' operator's character (was `'`, finalized as `⌄`)
 - [x] add an escape formatter for unicode characters (in the form of `\[char]` and `\+[name]\`)
-- [ ] get the escape formatter working with files
-- [ ] implement the 'reduce' operator
-- [ ] implement the 'range/iota' operator
+- [x] get the escape formatter working with files
+- [x] implement the 'reduce' operator
+- [x] implement the 'range/iota' operator
+- [ ] implement character literals (e.g. `'a`, `' `)
 - [ ] implement function tacitness
 - [ ] add additional named built-in operators (à la, Uiua's `&p`, `&ffi`, etc)
 - [ ] add examples

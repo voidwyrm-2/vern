@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.7.0
+
+- Divide is now '%', and modulo is now '◿'
+- Added the '?' (debug), '●' (identity), '⊢' (first), '⊣' (last), '/' (reduce), '⍀' (scan), 'ɩ' (iota), and '⋈' operators
+- Multi-character glyph escapes now use '.' instead of '+'
+- Added the 'Char' type
+- (Fix) the array type-checker wouldn't correctly infer the type of arrays
+
+
 ## 0.6.0
 
 - The escape formatter now works correctly on files

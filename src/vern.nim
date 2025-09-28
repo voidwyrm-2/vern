@@ -44,22 +44,6 @@ const
     ))
     .join("\n")
 
-
-proc displayStack(stack: seq[Value]) =
-  var col = 28
-
-  for val in stack:
-    echo "\e[38;5;", col, "m", val
-
-    col += 4
-
-    if col in {51..62}:
-      col = 64
-    elif col > 231:
-      col = 28
-
-  stdout.write "\e[0m"
-
 proc repl() =
   if not replHistoryFile.fileExists():
     replHistoryFile.writeFile("")
@@ -91,7 +75,7 @@ proc repl() =
   noise.setPrompt(basePrompt)
 
   #var stateBackup: State 
-  
+
   while true:
     if not noise.readLine():
       break

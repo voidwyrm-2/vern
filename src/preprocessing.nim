@@ -73,17 +73,21 @@ proc collapseEscapes*(file: string, buf: Buffer): tuple[buf: seq[char], collapse
 
     if inString:
       if cur == '\\':
+        result.buf.add('\\')
         cycle()
       elif cur == '"':
         inString = false
+
+      result.buf.add(cur)
     elif cur == '"':
       inString = true
-    elif cur == '\\' and (next in {'a'..'z'} or next == '+'):
+      result.buf.add(cur)
+    elif cur == '\\' and (next in {'a'..'z'} or next == '.'):
       cycle()
       
       var name: string
 
-      if cur == '+':
+      if cur == '.':
         name = newStringOfCap(10)
 
         cycle()

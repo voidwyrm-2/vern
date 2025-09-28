@@ -27,6 +27,9 @@ proc exec*(self: Interpreter, nodes: openArray[Node])
 
 proc exec*(self: Interpreter, n: Node) =
   case n.typ
+  of ntDebug:
+    echo "⎛ ? ", n.trace()
+    self.state.stack.displayStack("⎜ ")
   of ntIdent, ntOperator:
     let binding = self.state.get(n.tok[].name)
 

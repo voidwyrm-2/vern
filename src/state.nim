@@ -168,3 +168,19 @@ proc get*(self: State, name: string): Binding =
     raise newVernError(fmt"Unknown identifier '{name}'")
 
   self.bindings[name]
+
+
+proc displayStack*(stack: seq[Value], prefix: string = "") =
+  var col = 28
+
+  for val in stack:
+    echo prefix, "\e[38;5;", col, "m", val, "\e[0m"
+
+    col += 4
+
+    if col in {51..62}:
+      col = 64
+    elif col > 231:
+      col = 28
+
+  stdout.write "\e[0m"
