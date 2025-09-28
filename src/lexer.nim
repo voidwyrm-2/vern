@@ -301,7 +301,7 @@ proc lex*(self: Lexer): seq[Token] =
     of 226.char:
       result.add(self.collectUnicode(2))
     of 201.char:
-      result.add(self.collectUnicode(2))
+      result.add(self.collectUnicode(1))
     else:
       if ch > 127.char:
         self.err(fmt"Illegal character '{self.cur}'")

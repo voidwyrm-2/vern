@@ -184,13 +184,11 @@ proc main() =
 
   let filepath = args[0]
 
-  #[
   try:
-    collapseFileEscapes(filepath)
+    collapseEscapes(filepath)
   except VernError as e:
     echo e
     quit 1
-  ]#
 
   var f: File
   if not open(f, filepath):

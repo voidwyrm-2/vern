@@ -76,6 +76,7 @@ addP("■"):
 
   s.push(newBox(val))
 
+# Unbox
 addP("□"):
   let box = s.pop(1).needs(1, tBox)
 

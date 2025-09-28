@@ -115,11 +115,23 @@ proc collapseEscapes*(filepath: string) =
   var f: File
 
   if not f.open(filepath):
-    raise newVernError(fmt"Cannot open file '{filepath}' for reading")
+    when defined(debug):
+      raise newVernError(fmt"Cannot open file '{filepath}' for reading and writing")
+    else:
+      raise newVernError(fmt"Cannot open file '{filepath}'")
     
   try:
     let res = collapseEscapes(filepath, newFileBuffer(f))
-    f.close()
-    filepath.writeFile cast[seq[byte]](res.buf)
+
+    #[
+    let written = f.writeChars(res.buf, 0, res.buf.len)
+    if written < res.buf.len:
+      raise newVernError(fmt"Writing error: {written} bytes written, but the buffer contains {res.buf.len} bytes")
+    ]#
+
+    if res.collapses > 0:
+      f.close()
+
+      filepath.writeFile cast[seq[byte]](res.buf)
   finally:
     f.close()
