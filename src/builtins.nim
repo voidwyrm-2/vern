@@ -224,3 +224,15 @@ addP("⋈"):
     a = s.pop(2)
 
   s.push(a.join(b))
+
+# Decapitate
+addP("⊓"):
+  let
+    arr = s.pop(1).needs(1, tArray)
+    values = arr.values
+  
+  if values.len == 0:
+    s.push(arr)
+  else:
+    s.push(newArray(values[1..^1], arr.arrTyp, arr.shape - 1))
+    s.push(values[0])

@@ -89,6 +89,12 @@ func `==`*(a, b: Shape): bool =
 func `!=`*(a, b: Shape): bool =
   not (a == b)
 
+func `-`*(a: Shape, b: uint32): Shape =
+  result = a
+
+  if result.len > 0:
+    result[0] -= b
+
 func `$`*(shape: Shape): string =
   result = "⎡"
   
@@ -186,6 +192,9 @@ func node*(self: Value): Node =
 
 func real*(self: Value): float =
   self.real
+
+func arrTyp*(self: Value): Type =
+  self.arrTyp.unsafeGet()
 
 func values*(self: Value): seq[Value] =
   self.values

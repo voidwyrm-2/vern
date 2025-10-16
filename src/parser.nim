@@ -153,6 +153,11 @@ proc parseQuotation(self: Parser, anchor: ptr Token): Node =
 
   inc self.idx
 
+  if self.idx >= self.tokens.len:
+    let e = newVernError("Quotations cannot be empty")
+    e.addTrace(anchor[].trace())
+    raise e
+
   result.node = self.parseItem()
 
 proc parseGrouping(self: Parser, anchor: ptr Token): Node =

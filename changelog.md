@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.9.0
+
+- (Fix) empty quotatipns weren't flagged as an error
+- Added the '⊓' (decapitate) operator
+
 ## 0.8.0
 
 - Implemented characters literals
