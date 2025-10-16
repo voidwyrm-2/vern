@@ -233,6 +233,9 @@ func `[]`*(self: Value, ind: BackwardsIndex): Value =
 
   self[realInd]
 
+func bool*(self: Value): bool =
+  self.real != 0
+
 iterator withValues*(self: Value): Value =
   for value in self.values:
     yield value
@@ -241,6 +244,18 @@ template opImpl(name: string, op: untyped) =
   select (self.typ, other.typ):
     maybe (tReal, tReal):
       result = newReal(op(self.real, other.real))
+    maybe (tChar, tChar):
+      let n = self.char.float + other.char.float
+      
+      result = if n.canBeChar: newChar(n.char) else: newReal(n)
+    maybe (tReal, tChar):
+      let res = op(self.real, float(other.char))
+
+      result = if res.canBeChar: newChar(res.char) else: newReal(res)
+    maybe (tChar, tReal):
+      let res = op(float(self.char), other.real)
+
+      result = if res.canBeChar: newChar(res.char) else: newReal(res)
     maybe (tArray, tArray):
       if self.shape != other.shape:
         raise newVernError(fmt"Shapes {self.shape} and {other.shape} are incompatible")
@@ -251,24 +266,44 @@ template opImpl(name: string, op: untyped) =
         values[i] = op(self.values[i], other.values[i])
 
       result = newArray(values)
-    maybe (tReal, tArray):
+    maybe (_, tArray):
       let values = other.values.mapIt(op(self, it))
       result = newArray(values)
-    maybe (tArray, tReal):
+    maybe (tArray, _):
       let values = self.values.mapIt(op(it, other))
       result = newArray(values)
     maybe (tReal, tChars):
-      let values = other.chars
-        .mapIt(op(self.real, float(it)))
-        .mapIt(newReal(it))
+      var canBeChars = true
 
-      result = newArray(values)
+      let items = other.chars.mapIt((
+        let v = op(self.real, float(it));
+        canBeChars = canBeChars and v.canBeChar;
+        v
+      ))
+
+      if canBeChars:
+        result = newChars(items.mapIt(it.char))
+      else:
+        result = newArray(items.mapIt(newReal(it)))
     maybe (tChars, tReal):
-      let values = self.chars
-        .mapIt(op(float(it), other.real))
-        .mapIt(newReal(it))
+      var canBeChars = true
 
-      result = newArray(values)
+      let items = self.chars.mapIt((
+        let v = op(float(it), other.real);
+        canBeChars = canBeChars and v.canBeChar;
+        v
+      ))
+
+      if canBeChars:
+        result = newChars(items.mapIt(it.char))
+      else:
+        result = newArray(items.mapIt(newReal(it)))
+    maybe (tBox, _):
+      result = newBox(op(self.boxed, other))
+    maybe (_, tBox):
+      result = newBox(op(self, other.boxed))
+    maybe (tBox, tBox):
+      result = newBox(op(self.boxed, other.boxed))
     maybe (_, _):
       raise newVernError("Cannot " & name & fmt" {self.typ} and {other.typ}")
 
@@ -300,7 +335,7 @@ template opCompImpl(name: string, op: untyped) =
 func `$`*(self: Value): string
 
 func join*(self, other: Value): Value =
-  template boxedJoin(boxed, nonboxed: Value): untyped =
+  template boxedJoin(boxed, nonboxed: Value) =
     result = newArray(@[boxed, newBox(nonboxed)], tBox, @[2u32])
 
   select (self.typ, other.typ):

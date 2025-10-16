@@ -43,6 +43,8 @@ proc exec*(self: Interpreter, n: Node) =
       self.state.push(binding.value)
   of ntReal:
     self.state.push(newReal(n.tok[].r))
+  of ntChar:
+    self.state.push(newChar(n.tok[].ch))
   of ntString:
     self.state.push(newChars(n.tok[].s))
   of ntGrouping:

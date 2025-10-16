@@ -32,9 +32,6 @@ template addCompOp(name: string, op: untyped) =
       b = s.pop(1)
       a = s.pop(2)
 
-    echo "A: ", a
-    echo "B: ", b
-  
     s.push(if op(a, b): newReal(1) else: newReal(0))
 
 

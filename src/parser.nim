@@ -15,6 +15,7 @@ type
     ntIdent,
     ntOperator,
     ntReal,
+    ntChar,
     ntString,
     ntGrouping,
     ntArray,
@@ -24,7 +25,7 @@ type
 
   Node* = ref object
     case typ: NodeType
-    of ntIdent, ntOperator, ntReal, ntString, ntDebug:
+    of ntIdent, ntOperator, ntReal, ntChar, ntString, ntDebug:
       tok: Token
     of ntGrouping, ntArray:
       anchor: Token
@@ -63,7 +64,7 @@ func name*(self: Node): ptr Token =
 
 func trace*(self: Node): string =
   case self.typ
-  of ntIdent, ntOperator, ntReal, ntString, ntDebug:
+  of ntIdent, ntOperator, ntReal, ntChar, ntString, ntDebug:
     self.tok.trace()
   of ntGrouping, ntArray:
     self.anchor.trace()
@@ -74,7 +75,7 @@ func trace*(self: Node): string =
 
 func lit*(self: Node): string =
   case self.typ
-  of ntIdent, ntOperator, ntReal, ntString, ntDebug: 
+  of ntIdent, ntOperator, ntReal, ntChar, ntString, ntDebug: 
      self.tok.lit
   of ntGrouping, ntArray:
     "(" & self.nodes.mapIt(it.lit).join(" ") & ")"
@@ -88,7 +89,7 @@ proc `$`*(self: Node): string =
   result = fmt"({self.typ} "
 
   case self.typ
-  of ntIdent, ntOperator, ntReal, ntString, ntDebug: 
+  of ntIdent, ntOperator, ntReal, ntChar, ntString, ntDebug: 
     result &= self.tok.min()
   of ntGrouping, ntArray:
     result &= self.nodes.mapIt($it).join(" ")
@@ -130,6 +131,8 @@ proc parseItem(self: Parser, topLevel: bool = false): Node =
       result = Node(typ: ntOperator, tok: tok[])
   of ttReal:
     result = Node(typ: ntReal, tok: tok[])
+  of ttChar:
+    result = Node(typ: ntChar, tok: tok[])
   of ttString:
     result = Node(typ: ntString, tok: tok[])
   of ttQuote:

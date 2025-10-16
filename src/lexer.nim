@@ -6,11 +6,15 @@ import std/[
 import general
 
 
+const unicodePrefixes = {}
+
+
 type
   TokenType* = enum
     ttIdent,
     ttOperator,
     ttReal,
+    ttChar,
     ttString,
     ttQuote,
     ttDefine
@@ -30,6 +34,8 @@ type
       name*: string
     of ttReal:
       r*: float
+    of ttChar:
+      ch*: char
     of ttString:
       s*: seq[char]
     else:
@@ -55,8 +61,10 @@ func lit*(t: Token): string =
       t.name
     of ttReal:
       $t.r
+    of ttChar:
+      "'" & $t.ch
     of ttString:
-      cast[string](t.s)
+      "\"" & cast[string](t.s) & "\""
     of ttQuote:
       "`"
     of ttDefine:
@@ -268,6 +276,31 @@ proc collectUnicode(self: Lexer, len: uint): Token =
   
   result.name = buf
 
+proc collectUnicode(self: Lexer): tuple[tok: Token, valid: bool] =
+    result.valid = true
+
+    case self.cur
+    of 240.char:
+      result.tok = self.collectUnicode(3)
+    of 226.char:
+      result.tok = self.collectUnicode(2)
+    of 201.char:
+      result.tok = self.collectUnicode(1)
+    else:
+      result.valid = false
+
+proc collectChar(self: Lexer): Token =
+  result = Token(typ: ttChar)
+  result.file = self.file
+  result.ln = self.ln
+  result.col = self.col
+
+  self.adv()
+
+  result.ch = self.cur
+  
+  self.adv()
+
 proc lex*(self: Lexer): seq[Token] =
   while not self.eof:
     let ch = self.cur
@@ -300,14 +333,12 @@ proc lex*(self: Lexer): seq[Token] =
       result.add(self.collectIdent())
     of '0'..'9':
       result.add(self.collectReal())
+    of '\'':
+      result.add(self.collectChar())
     of '"':
       result.add(self.collectString())
-    of 240.char:
-      result.add(self.collectUnicode(3))
-    of 226.char:
-      result.add(self.collectUnicode(2))
-    of 201.char:
-      result.add(self.collectUnicode(1))
+    elif (let (tok, valid) = self.collectUnicode(); valid):
+      result.add(tok)
     else:
       if ch > 127.char:
         self.err(fmt"Illegal character '{self.cur}'")

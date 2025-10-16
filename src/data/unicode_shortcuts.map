@@ -3,8 +3,8 @@ shape, sha, sh: △
 scan, sca, sc, s: ⍀
 notequal, neq, n: ≠
 pop, po, p: ⌄
-box, bo, b: ■
-unbox, unbo, un, u: □
+box, bx, b: ■
+unbox, unbx, un, u: □
 index, ind: ∈
 first, fir, f: ⊢
 last, la, l: ⊣

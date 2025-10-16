@@ -24,11 +24,12 @@ Fib <- `(0 1)_ `(, + : ?)@⊢
 - [x] get the escape formatter working with files
 - [x] implement the 'reduce' operator
 - [x] implement the 'range/iota' operator
-- [ ] implement character literals (e.g. `'a`, `' `)
+- [x] implement character literals (e.g. `'a`, `' `)
 - [ ] implement function tacitness
 - [ ] add additional named built-in operators (à la, Uiua's `&p`, `&ffi`, etc)
-- [ ] add examples
-- [ ] implement 1D convulsion as an example
+- [ ] add basic examples
+- [ ] add a 1D convulsion, AoC, and Project Euler as examples
+- [ ] optimize arrays via reference counting
 - [ ] image manipulation (?)
 
 ## Building

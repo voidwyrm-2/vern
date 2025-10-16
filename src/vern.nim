@@ -37,7 +37,7 @@ const
           (if it.len == 1:
             fmt"\{it}"
           else:
-            fmt"\+{it}\") &
+            fmt"\.{it}\") &
             "\e[0m"
         ));
       fmt"""{keys.join(", ")} - {"\e[38;5;207m" & entry[1].strip() & "\e[0m"}"""

@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.8.0
+
+- Implemented characters literals
+- If applicable, character sequences will result from adding character sequences and non-character values
+
 ## 0.7.0
 
 - Divide is now '%', and modulo is now '◿'

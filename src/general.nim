@@ -4,7 +4,8 @@ import std/[
   options,
   macros,
   strformat,
-  os
+  os,
+  math
 ]
 
 
@@ -24,6 +25,10 @@ proc pathToCache*(): string =
 
   if not result.dirExists():
     result.createDir()
+
+
+func canBeChar*(real: float): bool =
+  real >= 0 and real <= 255 and splitDecimal(real).floatpart == 0
 
 
 type
