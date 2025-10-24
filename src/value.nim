@@ -24,6 +24,8 @@ type
 
   Shape* = seq[uint32]
 
+  Signature* = tuple[i, o: uint8]
+
   Value* = ref object
     case typ: Type
     of tQuote:
@@ -88,6 +90,18 @@ func `==`*(a, b: Shape): bool =
 
 func `!=`*(a, b: Shape): bool =
   not (a == b)
+
+func `===`*(a, b: Shape): bool =
+  a[1..^1] == b[1..^1]
+
+func `!==`*(a, b: Shape): bool =
+  not (a === b)
+
+func `+`*(a: Shape, b: uint32): Shape =
+  result = a
+
+  if result.len > 0:
+    result[0] += b
 
 func `-`*(a: Shape, b: uint32): Shape =
   result = a
@@ -160,8 +174,11 @@ func newArray*(values: varargs[Value]): Value =
 
   Value(typ: tArray, arrTyp: arrTyp, shape: shape, values: sValues)
 
+func newArray*(values: seq[Value], typ: Option[Type], shape: Shape): Value =
+  Value(typ: tArray, arrTyp: typ, shape: shape, values: values)
+
 func newArray*(values: seq[Value], typ: Type, shape: Shape): Value =
-  Value(typ: tArray, arrTyp: some(typ), shape: shape, values: values)
+  newArray(values, some(typ), shape)
 
 func newChars*(chars: seq[char]): Value =
   Value(typ: tChars, chars: chars)
@@ -183,6 +200,25 @@ func default*(typ: Type): Value =
     newChars(@[])
   of tBox:
     newBox(newReal(0))
+
+func `is`*(self: Value, typ: set[Type]): bool =
+  case self.typ
+  #of tBox:
+  #  if tBox in typ:
+  #    true
+  #  else:
+  #    self.boxed is typ
+  else:
+    self.typ in typ
+
+func `isnot`*(self: Value, typ: set[Type]): bool =
+  not (self is typ)
+
+func `is`*(self: Value, typ: Type): bool =
+  self is {typ}
+
+func `isnot`*(self: Value, typ: Type): bool =
+  not (self is typ)
 
 func typ*(self: Value): Type =
   self.typ
@@ -223,24 +259,26 @@ func len*(self: Value): int =
   else:
     1
 
-func `[]`*(self: Value, ind: int): Value =
-  if self.rank == 0:
-    raise newVernError("Cannot index into rank 0 array")
-  elif ind >= self.len:
-    raise newVernError(fmt"Index {ind} is out of bounds for length {self.len}")
+func `[]`*(self: Value, ind: Natural): Value =
+  case self.typ
+  of tArray:
+    if self.rank == 0:
+      raise newVernError("Cannot index into a rank 0 array")
 
-  if self.typ == tChars:
-    newChar(self.chars[ind])
-  else:
+    if ind >= self.values.len:
+      raise newVernError(fmt"Index {ind} is out of bounds for shape {self.shape}")
+
     self.values[ind]
+  #of tBox:
+  #  self.boxed[ind]
+  else:
+    raise newVernError(fmt"Cannot index into type {self.typ}")
 
 func `[]`*(self: Value, ind: BackwardsIndex): Value =
-  let realInd = self.len - ind.int
+  if ind.int > self.len and self.typ notin {tArray, tBox}:
+    raise newVernError(fmt"Backwards index {ind.int} is out of bounds for shape {self.shape}")
 
-  if realInd < 0:
-    raise newVernError(fmt"Backwards index {ind.int} is out of bounds")
-
-  self[realInd]
+  self[self.len - ind.int]
 
 func bool*(self: Value): bool =
   self.real != 0
@@ -349,29 +387,38 @@ func join*(self, other: Value): Value =
 
   select (self.typ, other.typ):
     maybe (tArray, tArray):
-      if self.rank != other.rank:
-        raise newVernError(fmt"Cannot join arrays of rank {self.rank} and {other.rank}")
+      if self.shape !== other.shape:
+        raise newVernError(fmt"Cannot join arrays of shapes {self.shape} and {other.shape}")
 
-      var arr = newSeq[Value](self.len + other.len)
+      if self.values.len > 0 and other.values.len > 0 and self.arrTyp() != other.arrTyp():
+        raise newVernError(fmt"Cannot join arrays of types {self.arrTyp()} and {other.arrTyp()}")
+
+      var arr = newSeqOfCap[Value](self.len + other.len)
       
       arr.add(self.values)
       arr.add(other.values)
 
-      result = newArray(arr)
+      result = newArray(arr, self.arrTyp, self.shape + self.shape[0])
     maybe (tArray, _):
       var arr = newSeqOfCap[Value](self.len + 1)
+
+      if self.values.len > 0 and self.arrTyp() != other.typ:
+        raise newVernError(fmt"Cannot join array of type {self.arrTyp()} and scalar of type {other.typ}")
 
       arr.add(self.values)
       arr.add(other)
   
-      result = newArray(arr)
+      result = newArray(arr, other.typ, self.shape + 1)
     maybe (_, tArray):
       var arr = newSeqOfCap[Value](self.len + 1)
+
+      if other.values.len > 0 and other.arrTyp() != self.typ:
+        raise newVernError(fmt"Cannot join array of type {self.typ} and scalar of type {other.arrTyp()}")
 
       arr.add(self)
       arr.add(other.values)
       
-      result = newArray(arr)
+      result = newArray(arr, self.typ, other.shape + 1)
     maybe (tBox, tBox):
       result = newArray(@[self, other], tBox, @[2u32])
     maybe (tBox, _):
@@ -384,34 +431,34 @@ func join*(self, other: Value): Value =
       
       result = newArray(self, other)
 
-proc `+`*(self, other: Value): Value =
+func `+`*(self, other: Value): Value =
   opImpl("add", `+`)
 
-proc `-`*(self, other: Value): Value =
+func `-`*(self, other: Value): Value =
   opImpl("subtract", `-`)
 
-proc `*`*(self, other: Value): Value =
+func `*`*(self, other: Value): Value =
   opImpl("multiply", `*`)
 
-proc `/`*(self, other: Value): Value =
+func `/`*(self, other: Value): Value =
   opImpl("divide", `/`)
 
-proc `mod`*(self, other: Value): Value =
+func `mod`*(self, other: Value): Value =
   opImpl("modulo", `mod`)
 
-proc `^`*(self, other: Value): Value =
+func `^`*(self, other: Value): Value =
   opImpl("get the power of", `^`)
 
-proc `==`*(self, other: Value): bool =
+func `==`*(self, other: Value): bool =
   false
 
-proc `!=`*(self, other: Value): bool =
-  true
+func `!=`*(self, other: Value): bool =
+  not (self == other)
 
-proc copy*(self: Value): Value =
+func copy*(self: Value): Value =
   case self.typ
   of tQuote:
-    newQuote(self.node)
+    self
   of tReal:
     newReal(self.real)
   of tChar:

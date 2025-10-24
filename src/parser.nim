@@ -153,7 +153,7 @@ proc parseQuotation(self: Parser, anchor: ptr Token): Node =
 
   inc self.idx
 
-  if self.idx >= self.tokens.len:
+  if self.idx >= self.tokens.len or self.tokens[self.idx].col != anchor[].col + 1 or self.tokens[self.idx].ln != anchor[].ln:
     let e = newVernError("Quotations cannot be empty")
     e.addTrace(anchor[].trace())
     raise e

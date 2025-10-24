@@ -70,7 +70,7 @@ proc repl() =
 
   let
     basePrompt = "   "
-    i = newInterpreter(builtins.builtins)
+    i = newInterpreter(builtins.builtins.copy())
   
   noise.setPrompt(basePrompt)
 
@@ -210,7 +210,7 @@ proc main() =
     for node in nodes:
       echo node
 
-  let i = newInterpreter(builtins.builtins)
+  let i = newInterpreter(builtins.builtins.copy())
 
   try:
     i.exec(nodes)

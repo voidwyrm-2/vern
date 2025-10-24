@@ -5,7 +5,8 @@ import std/[
   macros,
   strformat,
   os,
-  math
+  math,
+  tables
 ]
 
 
@@ -29,6 +30,14 @@ proc pathToCache*(): string =
 
 func canBeChar*(real: float): bool =
   real >= 0 and real <= 255 and splitDecimal(real).floatpart == 0
+
+
+func copy*[K, V](table: TableRef[K, V]): TableRef[K, V] =
+  ## Shallowly copies a TableRef
+  result = newTable[K, V](table.len)
+
+  for (k, v) in table.pairs:
+    result[k] = v
 
 
 type

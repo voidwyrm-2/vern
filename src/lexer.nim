@@ -6,9 +6,6 @@ import std/[
 import general
 
 
-const unicodePrefixes = {}
-
-
 type
   TokenType* = enum
     ttIdent,
@@ -54,6 +51,9 @@ func typ*(t: Token): TokenType =
 
 func ln*(t: Token): uint =
   t.ln
+
+func col*(t: Token): uint =
+  t.col
 
 func lit*(t: Token): string =
   case t.typ
@@ -306,7 +306,7 @@ proc lex*(self: Lexer): seq[Token] =
     let ch = self.cur
 
     case ch
-    of char(0)..char(32), char(127):
+    of char(0)..char(32), 127.char:
       self.adv()
     of ';':
       while not self.eof and self.cur != '\n':

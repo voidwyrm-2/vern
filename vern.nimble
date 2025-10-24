@@ -1,6 +1,6 @@
 # Package
 
-version       = "0.9.0"
+version       = "0.10.0"
 author        = "Nuclear"
 description   = "An array language with minimal unicode characters"
 license       = "Apache-2.0"

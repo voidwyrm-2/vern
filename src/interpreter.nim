@@ -13,7 +13,8 @@ export state
 
 
 type Interpreter* = ref object
-    state*: State
+  state*: State
+  fillTick*: uint8 = 0
 
 
 proc newInterpreter*(state: State): Interpreter =
@@ -41,6 +42,12 @@ proc exec*(self: Interpreter, n: Node) =
       self.exec(binding.nodes)
     of btValue:
       self.state.push(binding.value)
+
+    if binding.typ != btValue:
+      if self.fillTick > 0:
+        dec self.fillTick
+      else:
+        self.state.fill = fillDefault()
   of ntReal:
     self.state.push(newReal(n.tok[].r))
   of ntChar:

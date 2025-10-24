@@ -16,6 +16,13 @@ export
   value
 
 
+let gcString = ""
+
+template fillDefault*(): untyped =
+  proc(typ: Type): Value {.closure, sideEffect.} = (let _ = gcString; typ.default)
+# The `let _ = gcString` is to force non-gcsafe
+
+
 type
   NativeOp* = proc(s: State, iptr: pointer)
 
@@ -33,10 +40,13 @@ type
     of btValue:
       value: Value
 
+  FillProc* = proc(typ: Type): Value {.closure.}
+
   State* = ref object
     parent: State
     stack: seq[Value]
     bindings: TableRef[string, Binding]
+    fill*: FillProc
 
 
 func initBinding*(p: NativeOp): Binding =
@@ -89,10 +99,12 @@ func newState*(cap: int, bindings: TableRef[string, Binding] = nil): State =
   new result
   result.stack = newSeqOfCap[Value](cap)
   result.bindings = bindings
+  result.fill = fillDefault()
 
 func newState*(parent: State, cap: int): State =
   result = newState(cap, parent.bindings)
   result.parent = parent
+  result.fill = result.parent.fill
 
 func copy*(self: State): State =
   new result
@@ -136,7 +148,7 @@ proc clearStack*(self: State) =
 proc needs*(value: Value, arg: uint8, typ: set[Type]): Value =
   result = value
 
-  if value.typ notin typ and typ.len != 0:
+  if value isnot typ and typ.len != 0:
     raise newVernError(fmt"Expected {typ} for argument {arg}, but found {value.typ} instead")
 
 proc needs*(value: Value, arg: uint8, typ: Type): Value =
@@ -168,7 +180,6 @@ proc get*(self: State, name: string): Binding =
     raise newVernError(fmt"Unknown identifier '{name}'")
 
   self.bindings[name]
-
 
 proc displayStack*(stack: seq[Value], prefix: string = "") =
   var col = 28
