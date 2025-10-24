@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.10.1
+
+- (Fix) 'ɩ' didn't create the correct range
+- (Fix) '⍀' caused an error when given an empty array
+
 ## 0.10.0
 
 - '@' no longer creates an array automatically

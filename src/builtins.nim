@@ -158,6 +158,11 @@ addP("⍀"):
     arr = s.pop(2).needs(2, tArray)
     even = (arr.len and 1) == 0
 
+  if arr.len == 0:
+    s.push(newArray(@[]))
+    return
+
+  let
     substate = newState(intr.state, 2)
     subintr = newInterpreter(substate)
 
@@ -193,7 +198,7 @@ addS("/"):
 
 # Iota
 addS("ɩ"):
-  "1-[`1@]`+⍀0:⋈"
+  "1-[0:`1@]`+⍀"
 
 # Join
 addP("⋈"):
