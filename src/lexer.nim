@@ -1,6 +1,7 @@
 import std/[
   strformat,
-  strutils
+  strutils,
+  math
 ]
 
 import general
@@ -60,7 +61,10 @@ func lit*(t: Token): string =
     of ttIdent, ttOperator:
       t.name
     of ttReal:
-      $t.r
+      if t.r.splitDecimal().floatpart == 0:
+        $t.r.int
+      else:
+        $t.r
     of ttChar:
       "'" & $t.ch
     of ttString:

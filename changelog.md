@@ -1,9 +1,16 @@
 # Changelog
 
+## 0.11.0
+
+- (Fix) 'ɩ' still didn't create the correct range
+- Added the 'bindings' and 'unbind' commands to the REPL
+
+
 ## 0.10.1
 
 - (Fix) 'ɩ' didn't create the correct range
 - (Fix) '⍀' caused an error when given an empty array
+
 
 ## 0.10.0
 

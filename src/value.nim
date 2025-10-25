@@ -81,7 +81,6 @@ func `==`*(a, b: Shape): bool =
   if a.len != b.len:
     return false
 
-
   for i in 0..<a.len:
     if a[i] != b[i]:
       return false
@@ -480,12 +479,10 @@ func `$`*(self: Value): string =
   of tQuote:
     fmt"`{self.node.lit}"
   of tReal:
-    let str = $self.real
-
-    if str.endsWith(".0"):
-      str[0..^3]
+    if self.real.splitDecimal().floatpart == 0:
+      $self.real.int
     else:
-      str
+      $self.real
   of tChar:
     fmt"'{self.char}"
   of tArray:

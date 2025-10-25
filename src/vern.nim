@@ -80,7 +80,9 @@ proc repl() =
     if not noise.readLine():
       break
   
-    let line = noise.getLine()
+    let
+      line = noise.getLine()
+      parts = line.split(' ')
 
     case line
     of "help":
@@ -89,6 +91,8 @@ proc repl() =
 help - Show this message
 shortcuts - List the glyph shortcuts
 clear - Clear the stack
+bindings - Show the current bindings.
+unbind - Unbinds the specified binding
 exit - Exit the REPL
 """
       continue
@@ -98,8 +102,24 @@ exit - Exit the REPL
     of "clear":
       i.state.clearStack()
       continue
+    of "bindings":
+      displayBindings(i.state.bindings)
+      continue
     of "exit":
       break
+    else:
+      case parts[0]
+      of "unbind":
+        let args = parts[1..^1]
+
+        if args.len != 1:
+          echo "'unbind' needs a single argument"
+          continue
+
+        if i.state.unset(args[0]).isSome():
+          echo fmt"Removed binding '{args[0]}'"
+        else:
+          echo fmt"Binding '{args[0]}' does not exist"
 
     let (str, collapses) =
       try:
@@ -219,8 +239,7 @@ proc main() =
     quit 1
 
   if fBindings.exists:
-    for (k, v) in i.state.bindings.pairs:
-      echo k, " <- ", v
+    displayBindings(i.state.bindings)
 
     if fStack.exists:
       echo ""

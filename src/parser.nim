@@ -208,7 +208,13 @@ proc parseBinding(self: Parser, name: ptr Token): Node =
       dec self.idx # TODO: refactor parser to remove this
       break
 
-    result.body.add(self.parseItem())
+    let n = self.parseItem()
+
+    if n.typ == ntGrouping and self.idx < self.tokens.len:
+      line = self.tokens[self.idx].ln
+      
+
+    result.body.add(n)
     inc self.idx
   
 proc parse(self: Parser, toplevel: bool): seq[Node] =

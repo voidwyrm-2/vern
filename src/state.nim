@@ -2,7 +2,8 @@ import std/[
   tables,
   strformat,
   sequtils,
-  strutils
+  strutils,
+  options
 ]
 
 import
@@ -13,7 +14,8 @@ import
 
 export
   tables,
-  value
+  value,
+  options
 
 
 let gcString = ""
@@ -32,6 +34,7 @@ type
     btValue
 
   Binding* = object
+    chars: int
     case typ: BindingType
     of btNative:
       p: NativeOp
@@ -50,10 +53,23 @@ type
 
 
 func initBinding*(p: NativeOp): Binding =
-  Binding(typ: btNative, p: p)
+  Binding(typ: btNative, chars: 0, p: p)
 
 func initBinding*(nodes: seq[Node]): Binding =
-  Binding(typ: btNodes, nodes: nodes)
+  func getNodeLen(n: Node): int =
+    case n.typ
+    of ntIdent, ntReal, ntChar, ntString, ntDebug:
+      n.lit.len
+    of ntOperator:
+      1
+    of ntGrouping, ntArray:
+      n.nodes.map(getNodeLen).foldl(a + b)
+    of ntQuotation:
+      getNodeLen(n.node) + 1
+    else:
+      0
+
+  Binding(typ: btNodes, chars: nodes.map(getNodeLen).foldl(a + b), nodes: nodes)
 
 proc initBinding*(file, text: string): Binding =
   let
@@ -64,7 +80,7 @@ proc initBinding*(file, text: string): Binding =
   initBinding(@[node])
 
 func initBinding*(value: Value): Binding =
-  Binding(typ: btValue, value: value)
+  Binding(typ: btValue, chars: ($value).len, value: value)
 
 func typ*(binding: Binding): BindingType =
   binding.typ
@@ -90,9 +106,13 @@ func `$`*(binding: Binding): string =
   of btNative:
     "<native procedure>"
   of btNodes:
-    binding.nodes.mapIt(it.lit).join(" ")
+    binding.nodes.map(lit).join(" ")
   of btValue:
     $binding.value
+
+func display*(binding: Binding, name: string): string =
+  let c = if binding.chars == 1: "char" else: "chars"
+  fmt"{name} ({binding.chars} {c}) <- {binding}"
 
 
 func newState*(cap: int, bindings: TableRef[string, Binding] = nil): State =
@@ -181,6 +201,13 @@ proc get*(self: State, name: string): Binding =
 
   self.bindings[name]
 
+proc unset*(self: State, name: string): Option[Binding] =
+  result = none[Binding]()
+
+  if (var b: Binding; self.bindings.pop(name, b)):
+    result = some(b)
+
+
 proc displayStack*(stack: seq[Value], prefix: string = "") =
   var col = 28
 
@@ -195,3 +222,7 @@ proc displayStack*(stack: seq[Value], prefix: string = "") =
       col = 28
 
   stdout.write "\e[0m"
+
+proc displayBindings*(bindings: TableRef[string, Binding]) =
+  for (k, v) in bindings.pairs:
+    echo v.display(k)
