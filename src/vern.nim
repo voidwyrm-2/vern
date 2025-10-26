@@ -121,6 +121,8 @@ exit - Exit the REPL
         else:
           echo fmt"Binding '{args[0]}' does not exist"
 
+        continue
+
     let (str, collapses) =
       try:
         collapseEscapes(replFilename, line)

@@ -17,7 +17,7 @@ const langVersion* = staticRead("../vern.nimble")
   .strip()[1..^2]
 
 
-func panic*(msg: string) =
+template panic*(msg: string): untyped =
   raise newException(Defect, msg)
 
 

@@ -26,11 +26,18 @@ proc newInterpreter*(bindings: TableRef[string, Binding] = nil): Interpreter =
 
 proc exec*(self: Interpreter, nodes: openArray[Node])
 
+proc debugRecur(s: State) =
+  if s.parent != nil:
+    debugRecur(s.parent)
+    echo "┣━━━━━━"
+
+  s.stack.displayStack("┃ ")
+
 proc exec*(self: Interpreter, n: Node) =
   case n.typ
   of ntDebug:
-    echo "⎛ ? ", n.trace()
-    self.state.stack.displayStack("⎜ ")
+    echo "┏ ? ", n.trace()
+    debugRecur(self.state)
   of ntIdent, ntOperator:
     let binding = self.state.get(n.tok[].name)
 

@@ -63,7 +63,7 @@ func initBinding*(nodes: seq[Node]): Binding =
     of ntOperator:
       1
     of ntGrouping, ntArray:
-      n.nodes.map(getNodeLen).foldl(a + b)
+      n.nodes.map(getNodeLen).foldl(a + b) + 2
     of ntQuotation:
       getNodeLen(n.node) + 1
     else:
@@ -138,6 +138,9 @@ func copy*(self: State): State =
 
   for (k, v) in self.bindings.pairs:
     result.bindings[k] = v
+
+func parent*(self: State): State =
+  self.parent
 
 func stack*(self: State): auto =
   result = self.stack

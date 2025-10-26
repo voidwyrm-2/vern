@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.12.0
+
+- (Fix) binding lengths were off by 2 characters in certain cases
+- (Fix) the 'unbind' command was still interpreted by the interpreter instead of being ignored
+- Slightly improved the message shown by '?'
+- Added the '⁅' (round), '⌊' (floor), and '⌈' (ceiling) operators
+
+
 ## 0.11.0
 
 - (Fix) 'ɩ' still didn't create the correct range
@@ -17,7 +25,7 @@
 - '@' no longer creates an array automatically
 - '/' is now a composite made up of '⍀' and '⊣'
 - The readme examples now function correctly
-- Added the '∈' (index), '⧖' (reverse), '↺' (left rotate), '↻' (right rotate), '⊻' (switch), and '~' (fill)
+- Added the '∈' (index), '⧖' (reverse), '↺' (left rotate), '↻' (right rotate), '⊻' (switch), and '~' (fill) operators
 - Quotations with whitespace separating the quote and quote body (e.g. '\` hello', '\`    ()') now causes an error
 - The fill value for '⍀' and '/' may now be set with '~'
 - '⋈' has been optimized with pre-join type checking

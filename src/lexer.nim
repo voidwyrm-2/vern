@@ -44,7 +44,7 @@ type
     file: string
     ln, col: uint
     cur, next: char
-    eof, hasNext: bool
+    eofTick: int
 
 
 func typ*(t: Token): TokenType =
@@ -106,25 +106,30 @@ proc newLexer*(file: string, reader: Buffer): Lexer =
   result.file = file
   result.ln = 1
   result.col = 0
+  result.eofTick = -1
   result.adv()
   result.adv()
 
+func eof(self: Lexer): bool =
+  self.eofTick == 0
+
 proc readChar(self: Lexer): char =
   result = self.r.readChar()
-  self.hasNext = self.r.endOfFile
+  if self.r.endOfFile and self.eofTick < 0:
+    self.eofTick = 1
 
 proc adv(self: Lexer) =
   self.cur = self.next
 
   inc self.col
 
-  if self.hasNext:
-    self.eof = true
+  if self.eofTick > 0:
+    dec self.eofTick
 
   if not self.eof:
     self.next = self.readChar()
 
-  if self.cur == '\n' and not self.hasNext:
+  if self.cur == '\n':
     inc self.ln
     self.col = 0
 
@@ -275,7 +280,7 @@ proc collectUnicode(self: Lexer, len: uint): Token =
 
   self.col -= len + 1
 
-  if uint(buf.len) < len:
+  if buf.len.uint < len:
     self.err(fmt"Incomplete unicode character of length {len}")
   
   result.name = buf

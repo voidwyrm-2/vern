@@ -16,3 +16,6 @@ lrot, lr: ↺
 rrot, rr: ↻
 switch, swi, sw: ⊻
 reverse, rever, rev, r: ⧖
+round, rou: ⁅
+floor, flo: ⌊
+ceiling, ceil: ⌈

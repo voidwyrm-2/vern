@@ -13,15 +13,15 @@ macro switchOnMap(error: untyped): untyped =
     inop = newTree(nnkAccQuoted, ident"in")
 
     entries: seq[tuple[keys: seq[string], glyph: string]] = staticRead("data/unicode_shortcuts.map")
-    .strip()
-    .split("\n")
-    .mapIt((
-      let entry = it.split(":");
-      let keys = entry[0]
-        .split(",")
-        .mapIt(it.strip());
-      (keys, entry[1].strip())
-    ))
+      .strip()
+      .split("\n")
+      .mapIt((
+        let entry = it.split(":");
+        let keys = entry[0]
+          .split(",")
+          .mapIt(it.strip());
+        (keys, entry[1].strip())
+      ))
 
   var ifcases = newSeqOfCap[tuple[cond, body: NimNode]](entries.len)
 

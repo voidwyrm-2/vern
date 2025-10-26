@@ -56,6 +56,21 @@ addOp("◿", `mod`)
 # Power
 addOp("^", `^`)
 
+# Round
+addP("⁅"):
+  let n = s.pop(1).needs(1, tReal)
+
+  s.push(newReal(n.real.toInt().float))
+
+# Floor
+addP("⌊"):
+  let n = s.pop(1).needs(1, tReal)
+
+  s.push(newReal(n.real.int.float))
+
+addS("⌈"):
+  "1+⌊"
+
 # Equals
 addCompOp("=", `==`)
 
