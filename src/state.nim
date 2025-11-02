@@ -28,6 +28,8 @@ template fillDefault*(): untyped =
 type
   NativeOp* = proc(s: State, iptr: pointer)
 
+  Signature* = tuple[i, o: uint8]
+
   BindingType* = enum
     btNative,
     btNodes,
@@ -35,6 +37,7 @@ type
 
   Binding* = object
     chars: int
+    sig: Signature
     case typ: BindingType
     of btNative:
       p: NativeOp
@@ -53,7 +56,7 @@ type
 
 
 func initBinding*(p: NativeOp): Binding =
-  Binding(typ: btNative, chars: 0, p: p)
+  Binding(typ: btNative, chars: -1, p: p)
 
 func initBinding*(nodes: seq[Node]): Binding =
   func getNodeLen(n: Node): int =
@@ -111,8 +114,9 @@ func `$`*(binding: Binding): string =
     $binding.value
 
 func display*(binding: Binding, name: string): string =
-  let c = if binding.chars == 1: "char" else: "chars"
-  fmt"{name} ({binding.chars} {c}) <- {binding}"
+  let cword = if binding.chars == 1: "char" else: "chars"
+  let charStat = if binding.chars < 0: "" else: fmt" ({binding.chars} {cword})"
+  fmt"{name}{charStat} <- {binding}"
 
 
 func newState*(cap: int, bindings: TableRef[string, Binding] = nil): State =

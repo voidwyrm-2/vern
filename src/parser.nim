@@ -77,8 +77,10 @@ func lit*(self: Node): string =
   case self.typ
   of ntIdent, ntOperator, ntReal, ntChar, ntString, ntDebug: 
      self.tok.lit
-  of ntGrouping, ntArray:
+  of ntGrouping:
     "(" & self.nodes.mapIt(it.lit).join(" ") & ")"
+  of ntArray:
+    "[" & self.nodes.mapIt(it.lit).join(" ") & "]"
   of ntQuotation:
     fmt"`{self.node.lit}"
   of ntBinding:

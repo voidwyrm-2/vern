@@ -24,8 +24,6 @@ type
 
   Shape* = seq[uint32]
 
-  Signature* = tuple[i, o: uint8]
-
   Value* = ref object
     case typ: Type
     of tQuote:

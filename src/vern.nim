@@ -84,6 +84,9 @@ proc repl() =
       line = noise.getLine()
       parts = line.split(' ')
 
+    hf.writeLine(line)
+    noise.historyAdd(line)
+
     case line
     of "help":
       echo """
@@ -149,9 +152,6 @@ exit - Exit the REPL
       echo e
       #if stateBackup != nil:
       #  i.state = stateBackup
-  
-    hf.writeLine(line)
-    noise.historyAdd(line)
 
 proc main() =
   let
