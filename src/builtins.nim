@@ -72,10 +72,20 @@ addS("⌈"):
   "1+⌊"
 
 # Equals
-addCompOp("=", `==`)
+addP("="):
+  let
+    b = s.pop(1)
+    a = s.pop(2)
+
+  s.push(a.eq(b))
 
 # Not Equals
-addCompOp("≠", `!=`)
+addP("≠"):
+  let
+    b = s.pop(1)
+    a = s.pop(2)
+
+  s.push(a.eq(b, true))
 
 # Execute
 addP("!"):
@@ -247,8 +257,11 @@ addP("∈"):
 addP("⧖"):
   let val = s.pop(1)
 
-  if val.typ == tArray:
+  case val.typ
+  of tArray:
     s.push(newArray(val.values.reversed()))
+  of tChars:
+    s.push(newChars(val.chars.reversed()))
   else:
     s.push(val)
 

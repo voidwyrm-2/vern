@@ -4,7 +4,8 @@ import std/[
   strformat,
   strutils,
   math,
-  macros
+  macros,
+  enumerate
 ]
 
 import
@@ -232,6 +233,9 @@ func arrTyp*(self: Value): Type =
 func values*(self: Value): seq[Value] =
   self.values
 
+func chars*(self: Value): seq[char] =
+  self.chars
+
 func boxed*(self: Value): Value =
   self.boxed
 
@@ -451,6 +455,55 @@ func `==`*(self, other: Value): bool =
 
 func `!=`*(self, other: Value): bool =
   not (self == other)
+
+proc eq*(self, other: Value, ne: bool = false): Value =
+  var
+    hasValue: bool
+    b: bool
+
+  if cast[pointer](self) == cast[pointer](other):
+    return if ne: newReal(0) else: newReal(1)
+
+  select (self.typ, other.typ):
+    maybe (tReal, tReal):
+      b = self.real == other.real
+    maybe (tArray, tArray):
+      if self.shape != other.shape:
+        raise newVernError(fmt"Cannot join arrays of shapes {self.shape} and {other.shape}")
+
+      if self.values.len > 0 and other.values.len > 0 and self.arrTyp() != other.arrTyp():
+        raise newVernError(fmt"Cannot join arrays of types {self.arrTyp()} and {other.arrTyp()}")
+
+      let otherValues = other.values
+
+      var arr = newSeqOfCap[Value](self.len)
+
+      for (i, v) in enumerate(self.values):
+        arr.add(v.eq(otherValues[i], ne))
+
+      result = newArray(arr)
+      hasValue = true
+    maybe (tChars, tChars):
+      b = self.chars == other.chars
+    maybe (tBox, tBox):
+      result = self.boxed.eq(other.boxed, ne)
+      hasValue = true
+    maybe (tBox, _):
+      result = self.boxed.eq(other, ne)
+      hasValue = true
+    maybe (_, tBox):
+      result = self.eq(other.boxed, ne)
+      hasValue = true
+    maybe (_, _):
+      b = false
+
+  if hasValue:
+    return
+
+  if ne:
+    b = not b
+  
+  result = newReal(if b: 1 else: 0)
 
 func copy*(self: Value): Value =
   case self.typ

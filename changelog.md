@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.13.0
+
+- Equality now mostly works correctly
+
 ## 0.12.2
 
 - Everything is saved in the REPL, including commands, and history should not be lost when a runtime crash occurs
