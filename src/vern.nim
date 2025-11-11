@@ -100,6 +100,8 @@ exit - Exit the REPL
 """
       continue
     of "shortcuts":
+      echo "\n\e[38;5;27m\\'\e[0m: \e[38;5;207msuperscript\e[0m"
+      echo "\e[38;5;27m\\,\e[0m: \e[38;5;207msubscript\e[0m"
       echo "\n", shortcutHelp, "\n"
       continue
     of "clear":

@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.14.0
+
+- Rewrote the glyph escape formatter, meaning it should be marginally faster
+- Invalid character literals now get flagged as an error
+- Added Uiua-like operator subscripting; however, this subscripting replaces the last argument.
+- '*' and '%' are now '×' and '÷'
+
 ## 0.13.0
 
 - Equality now mostly works correctly

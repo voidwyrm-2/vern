@@ -8,9 +8,9 @@ import std/[
 import general
 
 
-macro switchOnMap(error: untyped): untyped =
+macro switchOnMap(value, error: untyped): untyped =
   let
-    inop = newTree(nnkAccQuoted, ident"in")
+    idResult = ident"result"
 
     entries: seq[tuple[keys: seq[string], glyph: string]] = staticRead("data/unicode_shortcuts.map")
       .strip()
@@ -23,25 +23,25 @@ macro switchOnMap(error: untyped): untyped =
         (keys, entry[1].strip())
       ))
 
-  var ifcases = newSeqOfCap[tuple[cond, body: NimNode]](entries.len)
+  result = newNimNode(nnkCaseStmt, nil)
+
+  result.add(value)
 
   for (keys, glyph) in entries:
-    ifcases.add((
-      newCall(
-        inop,
-        ident"name",
-        newLit(keys)
-      ),
-      newAssignment(ident"result", newLit(glyph))
-    ))
+    let bran = newNimNode(nnkOfBranch, nil)
 
-  result = newIfStmt(ifcases)
+    for k in keys:
+      bran.add(newLit(k))
+
+    bran.add(newStmtList(newAssignment(idResult, newLit(glyph))))
+
+    result.add(bran)
 
   result.add(newTree(nnkElse, error))
 
 
 func getGlyph(name: string): string =
-  switchOnMap:
+  switchOnMap(name):
     raise newVernError(fmt"Unknown glyph escape '{name}'")
 
 proc collapseEscapes*(file: string, buf: Buffer): tuple[buf: seq[char], collapses: uint64] =
@@ -82,30 +82,75 @@ proc collapseEscapes*(file: string, buf: Buffer): tuple[buf: seq[char], collapse
     elif cur == '"':
       inString = true
       result.buf.add(cur)
-    elif cur == '\\' and (next in {'a'..'z'} or next == '.'):
+    elif cur == '\\':
       cycle()
       
-      var name: string
+      var value: string
 
       if cur == '.':
-        name = newStringOfCap(10)
+        value = newStringOfCap(10)
 
         cycle()
 
         while not buf.endOfFile and cur != '\\':
-          name &= cur
+          value &= cur
           cycle()
+      elif cur in {',', '\''}:
+        value = newStringOfCap(3)
+
+        let superscript = cur == '\''
+
+        cycle()
+
+        while not buf.endOfFile and cur in {'0'..'9'}:
+          value &= cur
+          cycle()
+
+        if buf.endOfFile and cur in {'0'..'9'}:
+          value &= cur
+
+        if value.len == 0:
+          let e = newVernError("Subscript number escapes cannot be empty")
+          e.addTrace(fmt"at {file}:{ln}:{col}")
+          raise e
+
+        var subscr = newStringOfCap(value.len * 3)
+
+        for ch in value:
+          if superscript:
+            case ch
+            of '1':
+              subscr &= 194.char
+              subscr &= 185.char
+            of '2', '3':
+              subscr &= 194.char
+              subscr &= char(ch.int - 48 + 176)
+            else:
+              subscr &= 226.char
+              subscr &= 129.char
+              subscr &= char(ch.int - 48 + 176)
+              
+          else:
+            subscr &= 226.char
+            subscr &= 130.char
+            subscr &= char(ch.int - 48 + 128)
+
+        result.buf.add(subscr)
+
+        inc result.collapses
+
+        continue
       else:
-        name = $cur
+        value = $cur
 
       let glyph =
         try:
-          getGlyph(name)
+          getGlyph(value)
         except VernError as e:
           e.addTrace(fmt"at {file}:{ln}:{col}")
           raise e
       
-      result.buf.add(cast[seq[char]](glyph))
+      result.buf.add(glyph)
       inc result.collapses
     else:
       result.buf.add(cur)

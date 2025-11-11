@@ -15,6 +15,7 @@ type
     ntIdent,
     ntOperator,
     ntReal,
+    ntSubscripted,
     ntChar,
     ntString,
     ntGrouping,
@@ -27,6 +28,9 @@ type
     case typ: NodeType
     of ntIdent, ntOperator, ntReal, ntChar, ntString, ntDebug:
       tok: Token
+    of ntSubscripted:
+      num: Token
+      inner: Node
     of ntGrouping, ntArray:
       anchor: Token
       nodes: seq[Node]
@@ -51,7 +55,13 @@ func tok*(self: Node): ptr Token =
   addr self.tok
 
 func node*(self: Node): Node =
-  self.node
+  if self.typ == ntSubscripted:
+    self.inner
+  else:
+    self.node
+
+func num*(self: Node): int =
+  self.num.value
 
 func nodes*(self: Node): seq[Node] =
   if self.typ == ntBinding:
@@ -66,6 +76,8 @@ func trace*(self: Node): string =
   case self.typ
   of ntIdent, ntOperator, ntReal, ntChar, ntString, ntDebug:
     self.tok.trace()
+  of ntSubscripted:
+    self.num.trace()
   of ntGrouping, ntArray:
     self.anchor.trace()
   of ntQuotation:
@@ -76,7 +88,9 @@ func trace*(self: Node): string =
 func lit*(self: Node): string =
   case self.typ
   of ntIdent, ntOperator, ntReal, ntChar, ntString, ntDebug: 
-     self.tok.lit
+    self.tok.lit
+  of ntSubscripted:
+    self.inner.lit & self.num.lit
   of ntGrouping:
     "(" & self.nodes.mapIt(it.lit).join(" ") & ")"
   of ntArray:
@@ -93,6 +107,8 @@ proc `$`*(self: Node): string =
   case self.typ
   of ntIdent, ntOperator, ntReal, ntChar, ntString, ntDebug: 
     result &= self.tok.min()
+  of ntSubscripted:
+    result &= fmt"{self.node}{self.num.lit}"
   of ntGrouping, ntArray:
     result &= self.nodes.mapIt($it).join(" ")
   of ntQuotation:
@@ -149,6 +165,15 @@ proc parseItem(self: Parser, topLevel: bool = false): Node =
     let e = newVernError(fmt"Unexpected token '{tok[].lit}'")
     e.addTrace(tok[].trace())
     raise e
+
+  if (let next = self.peek(); next.isSome() and next.get[].typ == ttSubscriptNumber):
+    if result.typ notin {ntOperator, ntGrouping}:
+      let e = newVernError("Subscript is not allowed in this context")
+      e.addTrace(result.trace())
+      raise e
+
+    result = Node(typ: ntSubscripted, num: next.get[], inner: result)
+    inc self.idx
 
 proc parseQuotation(self: Parser, anchor: ptr Token): Node =
   result = Node(typ: ntQuotation)

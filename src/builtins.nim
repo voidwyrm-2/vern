@@ -45,10 +45,10 @@ addOp("+", `+`)
 addOp("-", `-`)
 
 # Multiply
-addOp("*", `*`)
+addOp("×", `*`)
 
 # Divide
-addOp("%", `/`)
+addOp("÷", `/`)
 
 # Modulus
 addOp("◿", `mod`)
@@ -283,7 +283,7 @@ addP("⊻"):
   if cases.len > 0 and cases.arrTyp != tQuote:
     raise newVernError("Argument 1 of ⊻ must be an array of quotations")
 
-  if ind < cases.len:
+  if ind >= 0 and ind < cases.len:
     intr.exec(cases[ind].node)
   else:
     intr.exec(other.node)

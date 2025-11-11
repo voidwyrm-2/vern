@@ -1,6 +1,6 @@
 # Vern
 
-An array programming language whose focus is simplicity, creating complexity from that simplicity.
+An array programming language whose focus is simplicity, and creating complexity from that simplicity.
 
 ## Example
 
@@ -26,7 +26,7 @@ Fib <- `(0 1)_ [`(`._, + :)@⌄]
 - [x] Implement the 'range/iota' operator
 - [x] Implement character literals (e.g. `'a`, `' `)
 - [ ] Implement public/private bindings with `·`
-- [ ] Implement equals and not-equals
+- [x] Implement equals and not-equals
 - [ ] Add additional named built-in operators (à la, Uiua's `&p`, `&ffi`, etc)
 - [ ] Add basic examples
 - [ ] Add a 1D convulsion, AoC, and Project Euler as examples

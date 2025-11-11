@@ -12,6 +12,7 @@ type
     ttIdent,
     ttOperator,
     ttReal,
+    ttSubscriptNumber,
     ttChar,
     ttString,
     ttQuote,
@@ -36,6 +37,9 @@ type
       ch*: char
     of ttString:
       s*: seq[char]
+    of ttSubscriptNumber:
+      subscr: string
+      value*: int
     else:
       discard
 
@@ -65,6 +69,8 @@ func lit*(t: Token): string =
         $t.r.int
       else:
         $t.r
+    of ttSubscriptNumber:
+      t.subscr
     of ttChar:
       "'" & $t.ch
     of ttString:
@@ -285,6 +291,34 @@ proc collectUnicode(self: Lexer, len: uint): Token =
   
   result.name = buf
 
+proc eat(self: Lexer, ch: char): bool =
+  result = not self.eof and self.cur == ch
+  if result:
+    self.adv()
+
+proc collectSubscriptNumber(self: Lexer): Token =
+  result = Token(typ: ttSubscriptNumber)
+  result.file = self.file
+  result.ln = self.ln
+  result.col = self.col
+  result.subscr = newStringOfCap(9)
+
+  while not self.eof:
+    if not self.eat(226.char):
+      break
+
+    if not self.eat(130.char):
+      break
+    
+    result.subscr &= 226.char
+    result.subscr &= 130.char
+    result.subscr &= self.cur
+
+    result.value *= 10
+    result.value += self.cur.int - 128
+
+    self.adv()
+
 proc collectUnicode(self: Lexer): tuple[tok: Token, valid: bool] =
     result.valid = true
 
@@ -292,8 +326,12 @@ proc collectUnicode(self: Lexer): tuple[tok: Token, valid: bool] =
     of 240.char:
       result.tok = self.collectUnicode(3)
     of 226.char:
+      if not self.eof and self.next == 130.char:
+        result.tok = self.collectSubscriptNumber()
+        return
+
       result.tok = self.collectUnicode(2)
-    of 201.char:
+    of 201.char, 195.char, 194.char:
       result.tok = self.collectUnicode(1)
     else:
       result.valid = false
@@ -305,6 +343,9 @@ proc collectChar(self: Lexer): Token =
   result.col = self.col
 
   self.adv()
+
+  if self.eof:
+    self.err("Invalid character literal", result.ln, result.col)
 
   result.ch = self.cur
   
