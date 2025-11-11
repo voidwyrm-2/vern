@@ -7,7 +7,7 @@ An array programming language whose focus is simplicity, and creating complexity
 ```
 Sum <- `+/
 
-Fac <- ɩ1~`*⍀
+Fac <- ɩ1~`×⍀
 
 Fib <- `(0 1)_ [`(`._, + :)@⌄]
 
