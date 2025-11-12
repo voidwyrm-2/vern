@@ -1,6 +1,7 @@
 import std/[
   sequtils,
-  algorithm
+  algorithm,
+  strformat
 ]
 
 import
@@ -308,4 +309,31 @@ addP("~"):
   else:
     s.fill = proc(typ: Type): Value = val
 
+  s.fillIsDefault = false
+
   intr.fillTick = 1
+
+# Unfill
+addP("⍨"):
+  if s.fillIsDefault:
+    raise newVernError("No fill value set")
+
+  s.push(s.fill(tReal))
+
+# Explode
+addP("⋯"):
+  let val = s.pop(1)
+
+  case val.typ
+  of tArray:
+    for v in val.values:
+      s.push(v)
+  of tChars:
+    var vals = newSeqOfCap[Value](val.len)
+
+    for ch in val.chars:
+      vals.add(newChar(ch))
+
+    s.push(newArray(vals, tChar, @[vals.len.uint32]))
+  else:
+    raise newVernError(fmt"Cannot explode type {val.typ}")

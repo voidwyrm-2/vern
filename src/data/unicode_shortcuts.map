@@ -21,3 +21,5 @@ reverse, rever, rev, r: ⧖
 round, rou: ⁅
 floor, flo: ⌊
 ceiling, ceil: ⌈
+unfill, unfi, unf, ~: ⍨
+explode, expl, ex, e: ⋯

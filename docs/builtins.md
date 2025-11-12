@@ -9,6 +9,7 @@
 > Pervausive Dyadic function
 
 Add values.
+
 ```
    2 1+
 3
@@ -29,6 +30,7 @@ Add values.
 > Pervausive Dyadic function
 
 Subtract values.
+
 ```
    2 1-
 1
@@ -48,7 +50,10 @@ Subtract values.
 
 > Pervausive Dyadic function
 
+> Shortcuts: `\.multiply\`, `\.mult\`, `\*`
+
 Multiply values.
+
 ```
    5 3×
 15
@@ -68,7 +73,10 @@ Multiply values.
 
 > Pervausive Dyadic function
 
+> Shortcuts: `\.divide\`, `\.div\`, `\%`
+
 Divide values.
+
 ```
    12 3÷
 4
@@ -91,6 +99,7 @@ Divide values.
 > Shortcuts: `\.modulo\`, `\.modu\`, `\.mod\`, `\m`
 
 Modulo values.
+
 ```
    27 10◿
 7
@@ -115,6 +124,7 @@ Modulo values.
 > `\.round\`, `\.rou\`
 
 Rounds a number to the nearest whole number.
+
 ```
    3.4⁅
 3
@@ -132,6 +142,7 @@ Rounds a number to the nearest whole number.
 > `\.floor\`, `\.flo\`
 
 Rounds a number towards negative infinity.
+
 ```
    3.4⌊
 3
@@ -149,6 +160,7 @@ Rounds a number towards negative infinity.
 > `\.ceiling\`, `\.ceil\`
 
 Rounds a number towards positive infinity.
+
 ```
    3.4⌈
 4
@@ -164,6 +176,7 @@ Rounds a number towards positive infinity.
 > Pervausive Dyadic function
 
 Checks the equality of two values; the result of `=` will always be 0 or 1.
+
 ```
    1 2=
 0
@@ -181,6 +194,7 @@ Checks the equality of two values; the result of `=` will always be 0 or 1.
 > Shortcuts: `\.notequal\`, `\.neq\`, `\n`
 
 Checks for the inequality of two values; the result of `≠` will always be 0 or 1.
+
 ```
    1 2≠
 1
@@ -196,6 +210,7 @@ Checks for the inequality of two values; the result of `≠` will always be 0 or
 > Monadic function
 
 Get the number of rows in an array.
+
 ```
    5#
 1
@@ -223,6 +238,7 @@ Get the number of rows in an array.
 > Shortcuts: `\.shape\`, `\.sha\`, `\.sh\`
 
 Get the dimensions of an array.
+
 ```
    5△
 []
@@ -249,6 +265,7 @@ Get the dimensions of an array.
 > Monadic modifier
 
 Executes a quotation.
+
 ```
    1 1 `+
 1
@@ -286,12 +303,14 @@ Stacktrace:
 ```
 
 But if the values are wrapped in Boxes, types and shapes may be matched.
+
 ```
    [1■ 'a■ [2 3]■]
 [1|'a|[2 3]]
 ```
 
 Pervausive functions apply through boxes.
+
 ```
    20■ 30■
 ■20
@@ -319,6 +338,7 @@ Pervausive functions apply through boxes.
 > Shortcuts: `\.unbox\`, `\.unbx\`, `\.un\`, `\u`
 
 Take a value out of a box.
+
 ```
    20■■ 40 +
 ■■60
@@ -334,6 +354,7 @@ Take a value out of a box.
 > Shortcuts: `\.identity\`, `\.iden\`, `\.id\`
 
 Do nothing with one value.
+
 ```
    5 ●
 5
@@ -346,6 +367,7 @@ Do nothing with one value.
 > Shortcuts: `\.pop\`, `\.po\`, `\p`
 
 Discard the value at the top of the stack.
+
 ```
    1 2 3 ⌄
 1
@@ -362,6 +384,7 @@ Discard the value at the top of the stack.
 > Monadic function
 
 Duplicate the value at the top of the stack.
+
 ```
    1 .
 1
@@ -383,6 +406,7 @@ Duplicate the value at the top of the stack.
 > Triadic function
 
 Duplicate the value under the top stack value.
+
 ```
    0 1 ,
 0
@@ -403,6 +427,7 @@ Duplicate the value under the top stack value.
 > Monadic modifier
 
 Temporarily pop the top value off the stack and execute a quotation.
+
 ```
    [3 2 1 `+_]
 [5 1]
@@ -418,6 +443,7 @@ Temporarily pop the top value off the stack and execute a quotation.
 > Monadic modifier
 
 Repeat a quotation an amount of times.
+
 ```
    0 5 `(2+)@
 10
@@ -435,6 +461,7 @@ Repeat a quotation an amount of times.
 > Shortcuts: `\.first\`, `\.fir\`, `\f`
 
 Get the first row of an array.
+
 ```
    [1 2 3]⊢
 1
@@ -452,6 +479,7 @@ Get the first row of an array.
 > Shortcuts: `\.last\`, `\.la\`, `\l`
 
 Get the last row of an array.
+
 ```
    [1 2 3]⊣
 3
@@ -468,10 +496,12 @@ Get the last row of an array.
 > Monadic modifier
 
 Apply a reducing quotation to an array.
+
 ```
    [1 2 3 4 5] `+/
 15
 ```
+
 
 #### `⍀` - Scan
 
@@ -480,10 +510,12 @@ Apply a reducing quotation to an array.
 > Shortcuts: `\.scan\`, `\.sca\`, `\.sc\`, `\s`
 
 Like `/`, but intermediate values are kept.
+
 ```
    [1 2 3 4 5] `+⍀
 [1 3 6 10 15]
 ```
+
 
 #### `ɩ` - Iota
 
@@ -492,10 +524,12 @@ Like `/`, but intermediate values are kept.
 > Shortcuts: `\.iota\`, `\.io\`, `\i`
 
 Make an array of numbers from 0 to N - 1.
+
 ```
    10 ɩ
 [0 1 2 3 4 5 6 8 9]
 ```
+
 
 #### `⋈` - Join
 
@@ -504,6 +538,7 @@ Make an array of numbers from 0 to N - 1.
 > Shortcuts: `\.join\`, `\.joi\`, `\.jo\`, `\j`
 
 Join two arrays end-to-end.
+
 ```
    2 1⋈
 [2 1]
@@ -514,6 +549,7 @@ Join two arrays end-to-end.
 [10 20 30 40]
 ```
 
+
 #### `⊓` - Decapitate
 
 > Dyadic function
@@ -521,11 +557,13 @@ Join two arrays end-to-end.
 > Shortcuts: `\.decapitate\`, `\.decapit\`, `\.decap\`, `\.de\`, `\d`
 
 Returns the head and tail of an array.
+
 ```
    [1 2 3 4]⊓
 [2 3 4]
 1
 ```
+
 
 #### `⧖` - Reverse
 
@@ -534,6 +572,7 @@ Returns the head and tail of an array.
 > Shortcuts: `\.switch\`, `\.swi\`, `\.sw\`
 
 Reverses an array.
+
 ```
    [1 2 3 4]⧖
 [4 3 2 1]
@@ -544,6 +583,7 @@ Reverses an array.
 "olleh"
 ```
 
+
 #### `∈` - Index
 
 > Dyadic function
@@ -551,6 +591,7 @@ Reverses an array.
 > Shortcuts: `\.index\`, `\.ind\`
 
 Returns an item at an index in an array.
+
 ```
    [1 2 3 4] 0∈
 1
@@ -561,6 +602,7 @@ Returns an item at an index in an array.
 40
 ```
 
+
 #### `↺` - Left/Downwards Rotate
 
 > Tryadic function
@@ -568,6 +610,7 @@ Returns an item at an index in an array.
 > Shortcuts: `\.lrot\`, `\.lr\`, `\.drot\`, `\.dr\`
 
 Rotates three items on the stack downwards.
+
 ```
    1 2 3
 1
@@ -580,6 +623,7 @@ Rotates three items on the stack downwards.
 2
 ```
 
+
 #### `↻` - Right/Upwards Rotate
 
 > Tryadic function
@@ -587,6 +631,7 @@ Rotates three items on the stack downwards.
 > Shortcuts: `\.rrot\`, `\.rr\`, `\.urot\`, `\.ur\`
 
 Rotates three items on the stack upwards.
+
 ```
    1 2 3
 1
@@ -599,14 +644,18 @@ Rotates three items on the stack upwards.
 1
 ```
 
+
 #### `⊻` - Switch
 
 > Tryadic function
 
 > Shortcuts: `\.switch\`, `\.swi\`, `\.sw\`
 
-Switches on an index; if the index is out of range for the given quotation array,
+Switches on an index.
+
+If the index is out of range for the given quotation array,
 the extra quotation is executed.
+
 ```
    0 `0 [`10 `20 `30 `40] ⊻
 10
@@ -634,6 +683,8 @@ the extra quotation is executed.
 
 Sets the fill value for operators.
 
+If the given fill value is a quotation, that quotation will be executed when a fill value is used.
+
 ```
    [1 2 3 4 5] `+/
 15
@@ -648,4 +699,47 @@ Sets the fill value for operators.
 
    [1 2 3 4 5] 1~`×/
 120
+```
+
+```
+   [1 2 3 4 5] `(10 10+)~ `×/
+2400
+```
+
+
+#### `⍨` - Unfill
+
+> Niladic meta-function
+
+> Shortcuts: `\.unfill\`, `\.unfi\`, `\.unf\`, `\~`
+
+Returns the fill value.
+
+```
+   ⍨
+Error: No fill value set
+Stacktrace:
+ at repl:1:2
+
+   10~ ⍨
+10
+```
+
+
+#### `⋯` - Explode
+
+> Monadic function
+
+Deconstructs an array.
+
+```
+   "abc" ⋯
+['a 'b 'c]
+```
+
+```
+   ['a 'b 'c] ⋯
+'a
+'b
+'c
 ```

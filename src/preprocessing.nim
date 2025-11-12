@@ -68,9 +68,9 @@ proc collapseEscapes*(file: string, buf: Buffer): tuple[buf: seq[char], collapse
     if not buf.endOfFile:
       next = buf.readChar()
 
-  while not buf.endOfFile:
-    cycle()
+  cycle()
 
+  while not buf.endOfFile:
     if inString:
       if cur == '\\':
         result.buf.add('\\')
@@ -79,9 +79,11 @@ proc collapseEscapes*(file: string, buf: Buffer): tuple[buf: seq[char], collapse
         inString = false
 
       result.buf.add(cur)
+      cycle()
     elif cur == '"':
       inString = true
       result.buf.add(cur)
+      cycle()
     elif cur == '\\':
       cycle()
       
@@ -142,6 +144,7 @@ proc collapseEscapes*(file: string, buf: Buffer): tuple[buf: seq[char], collapse
         continue
       else:
         value = $cur
+        cycle()
 
       let glyph =
         try:
@@ -154,6 +157,7 @@ proc collapseEscapes*(file: string, buf: Buffer): tuple[buf: seq[char], collapse
       inc result.collapses
     else:
       result.buf.add(cur)
+      cycle()
 
 proc collapseEscapes*(file, str: string): tuple[str: string, collapses: uint64] =
   let res = collapseEscapes(file, newStringBuffer(str))

@@ -95,9 +95,12 @@ proc repl() =
 help - Show this message
 shortcuts - List the glyph shortcuts
 clear - Clear the stack
-bindings - Show the current bindings.
+bindings - Show the current bindings
 unbind - Unbinds the specified binding
 exit - Exit the REPL
+
+REPL Controls
+ Up/Down arrow - Scroll up/down REPL history
 """
       continue
     of "shortcuts":

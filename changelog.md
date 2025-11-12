@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.16.0
+
+- Added the '⍨' (unfill) and '⋯' (explode) operators
+- (Fix) the subscript escape would skip the first non-digit character
+- Improved the REPL help message
+
 ## 0.15.1
 
 - (Possible fix) on Windows systems, the final character of files doesn't get read
@@ -10,6 +16,7 @@
 - Added 'drot' and 'dr' as escapes for '↻'
 - (Fix) Bindings with an empty body caused a runtime crash
 - (Fix) Pervasive operations caused boxes to combine into deeper boxes
+- (Fix) Chars were unable to be added with Chars
 - Box arrays now format with `|` separating items
 - Added the '-c/-clear' flag
 - The illegal character error message now shows the value of the character

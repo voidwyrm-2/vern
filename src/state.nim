@@ -53,6 +53,7 @@ type
     stack: seq[Value]
     bindings: TableRef[string, Binding]
     fill*: FillProc
+    fillIsDefault*: bool = true
 
 
 func initBinding*(p: NativeOp): Binding =

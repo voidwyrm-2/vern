@@ -55,6 +55,7 @@ proc exec*(self: Interpreter, n: Node) =
         dec self.fillTick
       else:
         self.state.fill = fillDefault()
+        self.state.fillIsDefault = true
   of ntReal:
     self.state.push(newReal(n.tok[].r))
   of ntChar:
