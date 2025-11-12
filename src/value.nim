@@ -41,6 +41,7 @@ type
       chars: seq[char]
     of tBox:
       boxed: Value
+      level: Positive
 
 
 func `$`*(typ: Type): string =
@@ -182,7 +183,13 @@ func newChars*(chars: seq[char]): Value =
   Value(typ: tChars, chars: chars)
 
 func newBox*(value: Value): Value =
-  Value(typ: tBox, boxed: value)
+  Value(typ: tBox, boxed: value, level: if value.typ == tBox: value.level + 1 else: 1)
+
+func newBox*(value: Value, level: Positive): Value =
+  result = value
+
+  for _ in 0..<level:
+    result = newBox(result)
 
 func default*(typ: Type): Value =
   case typ
@@ -238,6 +245,12 @@ func chars*(self: Value): seq[char] =
 
 func boxed*(self: Value): Value =
   self.boxed
+
+func boxedDeep*(self: Value): Value =
+  if self.typ == tBox:
+    self.boxed.boxedDeep
+  else:
+    self
 
 func shape*(self: Value): Shape =
   case self.typ
@@ -346,12 +359,29 @@ template opImpl(name: string, op: untyped) =
         result = newChars(items.mapIt(it.char))
       else:
         result = newArray(items.mapIt(newReal(it)))
-    maybe (tBox, _):
-      result = newBox(op(self.boxed, other))
-    maybe (_, tBox):
-      result = newBox(op(self, other.boxed))
+    maybe (tChars, tChars):
+      var canBeChars = true
+
+      let items = self.chars.mapIt((
+        let v = op(float(it), float(it));
+        canBeChars = canBeChars and v.canBeChar;
+        v
+      ))
+
+      if canBeChars:
+        result = newChars(items.mapIt(it.char))
+      else:
+        result = newArray(items.mapIt(newReal(it)))
     maybe (tBox, tBox):
-      result = newBox(op(self.boxed, other.boxed))
+      let
+        level = max(self.level, other.level)
+        value = op(self.boxedDeep, other.boxedDeep)
+
+      result = newBox(value, level)
+    maybe (tBox, _):
+      result = newBox(op(self.boxedDeep, other), self.level)
+    maybe (_, tBox):
+      result = newBox(op(self, other.boxedDeep), other.level)
     maybe (_, _):
       raise newVernError("Cannot " & name & fmt" {self.typ} and {other.typ}")
 
@@ -537,7 +567,10 @@ func `$`*(self: Value): string =
   of tChar:
     fmt"'{self.char}"
   of tArray:
-    "[" & self.values.mapIt($it).join(" ") & "]"
+    if self.arrTyp.isSome() and self.arrTyp() == tBox:
+      "[" & self.values.mapIt($it.boxed).join("|") & "]"
+    else:
+      "[" & self.values.mapIt($it).join(" ") & "]"
   of tChars:
     "\"" & cast[string](self.chars) & "\""
   of tBox:

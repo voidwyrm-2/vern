@@ -265,11 +265,11 @@ addP("⧖"):
   else:
     s.push(val)
 
-# Left Rotate
+# Left/Upwards Rotate
 addS("↺"):
   ":`:_"
 
-# Right Rotate
+# Right/Downwards Rotate
 addS("↻"):
   "`:_:"
 

@@ -16,6 +16,10 @@ Fib <- `(0 1)_ [`(`._, + :)@⌄]
 11 Fib ; [0 1 1 2 3 5 8 13 21 34 55 89]
 ```
 
+## Documentation
+
+[intro.md](/docs/intro.md)
+
 ## Todo
 
 - [x] Implement list syntax

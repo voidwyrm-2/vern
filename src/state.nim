@@ -72,7 +72,7 @@ func initBinding*(nodes: seq[Node]): Binding =
     else:
       0
 
-  Binding(typ: btNodes, chars: nodes.map(getNodeLen).foldl(a + b), nodes: nodes)
+  Binding(typ: btNodes, chars: if nodes.len == 0: 0 else: nodes.map(getNodeLen).foldl(a + b), nodes: nodes)
 
 proc initBinding*(file, text: string): Binding =
   let
@@ -146,10 +146,10 @@ func copy*(self: State): State =
 func parent*(self: State): State =
   self.parent
 
-func stack*(self: State): auto =
+func stack*(self: State): seq[Value] =
   result = self.stack
 
-func bindings*(self: State): auto =
+func bindings*(self: State): TableRef[string, Binding] =
   result = self.bindings
 
 proc push*(self: State, value: Value) =

@@ -12,6 +12,7 @@ type
     ttIdent,
     ttOperator,
     ttReal,
+    ttSuperscriptNumber,
     ttSubscriptNumber,
     ttChar,
     ttString,
@@ -37,8 +38,8 @@ type
       ch*: char
     of ttString:
       s*: seq[char]
-    of ttSubscriptNumber:
-      subscr: string
+    of ttSuperscriptNumber, ttSubscriptNumber:
+      scr: string
       value*: int
     else:
       discard
@@ -48,7 +49,6 @@ type
     file: string
     ln, col: uint
     cur, next: char
-    eofTick: int
 
 
 func typ*(t: Token): TokenType =
@@ -69,8 +69,8 @@ func lit*(t: Token): string =
         $t.r.int
       else:
         $t.r
-    of ttSubscriptNumber:
-      t.subscr
+    of ttSuperscriptNumber, ttSubscriptNumber:
+      t.scr
     of ttChar:
       "'" & $t.ch
     of ttString:
@@ -112,25 +112,19 @@ proc newLexer*(file: string, reader: Buffer): Lexer =
   result.file = file
   result.ln = 1
   result.col = 0
-  result.eofTick = -1
   result.adv()
   result.adv()
 
 func eof(self: Lexer): bool =
-  self.eofTick == 0
+  self.r.endOfFile
 
 proc readChar(self: Lexer): char =
-  result = self.r.readChar()
-  if self.r.endOfFile and self.eofTick < 0:
-    self.eofTick = 1
+  self.r.readChar()
 
 proc adv(self: Lexer) =
   self.cur = self.next
 
   inc self.col
-
-  if self.eofTick > 0:
-    dec self.eofTick
 
   if not self.eof:
     self.next = self.readChar()
@@ -301,7 +295,7 @@ proc collectSubscriptNumber(self: Lexer): Token =
   result.file = self.file
   result.ln = self.ln
   result.col = self.col
-  result.subscr = newStringOfCap(9)
+  result.scr = newStringOfCap(9)
 
   while not self.eof:
     if not self.eat(226.char):
@@ -310,9 +304,9 @@ proc collectSubscriptNumber(self: Lexer): Token =
     if not self.eat(130.char):
       break
     
-    result.subscr &= 226.char
-    result.subscr &= 130.char
-    result.subscr &= self.cur
+    result.scr &= 226.char
+    result.scr &= 130.char
+    result.scr &= self.cur
 
     result.value *= 10
     result.value += self.cur.int - 128
@@ -391,7 +385,7 @@ proc lex*(self: Lexer): seq[Token] =
       result.add(tok)
     else:
       if ch > 127.char:
-        self.err(fmt"Illegal character '{self.cur}'")
+        self.err(fmt"Illegal character '\n{self.cur.int}'")
           
       if ch == '<' and self.next == '-':
         result.add(self.tok(ttDefine))

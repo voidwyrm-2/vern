@@ -63,6 +63,7 @@ type
 
   FileBuffer* = ref object of Buffer
     f: File
+    realEndOfFile: bool
 
   StringBuffer* = ref object of Buffer
     str: string
@@ -75,6 +76,9 @@ method size*(self: Buffer): int64 {.base.} =
   discard
 
 method endOfFile*(self: Buffer): bool {.base.} =
+  discard
+
+method index*(self: Buffer): int64 {.base.} =
   discard
 
 method close*(self: Buffer) {.base.} =
@@ -92,7 +96,13 @@ method size*(self: FileBuffer): int64 =
   self.f.getFileSize
 
 method endOfFile*(self: FileBuffer): bool =
-  self.f.endOfFile
+  result = self.f.endOfFile and self.realEndOfFile
+
+  if self.f.endOfFile:
+    self.realEndOfFile = true
+
+method index*(self: FileBuffer): int64 =
+  -1
 
 method close*(self: FileBuffer) =
   self.f.close()
@@ -112,7 +122,10 @@ method size*(self: StringBuffer): int64 =
   self.str.len.int64
 
 method endOfFile*(self: StringBuffer): bool =
-  self.idx > self.str.len
+  self.idx > self.str.len + 1
+
+method index*(self: StringBuffer): int64 =
+  self.idx.int64
 
 
 func expect*[T](opt: Option[T], msg: string): T =

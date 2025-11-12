@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.15.0
+
+- Added 'urot' and 'ur' as escapes for '↺'
+- Added 'drot' and 'dr' as escapes for '↻'
+- (Fix) Bindings with an empty body caused a runtime crash
+- (Fix) Pervasive operations caused boxes to combine into deeper boxes
+- Box arrays now format with `|` separating items
+- Added the '-c/-clear' flag
+- The illegal character error message now shows the value of the character
+- Added an easter egg
+- Added documentation
+
 ## 0.14.0
 
 - Rewrote the glyph escape formatter, meaning it should be marginally faster

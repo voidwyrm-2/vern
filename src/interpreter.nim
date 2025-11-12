@@ -75,6 +75,8 @@ proc exec*(self: Interpreter, n: Node) =
     self.state.push(newArray(items))
   of ntQuotation:
     self.state.push(newQuote(n.node))
+  of ntSuperscripted:
+    panic("unreachable for branch ntSuperscripted")
   of ntSubscripted:
     self.state.push(newReal(n.num.float))
     self.exec(n.node)

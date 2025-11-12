@@ -2,7 +2,8 @@ import std/[
   options,
   strformat,
   sequtils,
-  strutils
+  strutils,
+  random
 ]
 
 import
@@ -15,6 +16,7 @@ type
     ntIdent,
     ntOperator,
     ntReal,
+    ntSuperscripted,
     ntSubscripted,
     ntChar,
     ntString,
@@ -28,7 +30,7 @@ type
     case typ: NodeType
     of ntIdent, ntOperator, ntReal, ntChar, ntString, ntDebug:
       tok: Token
-    of ntSubscripted:
+    of ntSuperscripted, ntSubscripted:
       num: Token
       inner: Node
     of ntGrouping, ntArray:
@@ -76,7 +78,7 @@ func trace*(self: Node): string =
   case self.typ
   of ntIdent, ntOperator, ntReal, ntChar, ntString, ntDebug:
     self.tok.trace()
-  of ntSubscripted:
+  of ntSuperscripted, ntSubscripted:
     self.num.trace()
   of ntGrouping, ntArray:
     self.anchor.trace()
@@ -89,7 +91,7 @@ func lit*(self: Node): string =
   case self.typ
   of ntIdent, ntOperator, ntReal, ntChar, ntString, ntDebug: 
     self.tok.lit
-  of ntSubscripted:
+  of ntSuperscripted, ntSubscripted:
     self.inner.lit & self.num.lit
   of ntGrouping:
     "(" & self.nodes.mapIt(it.lit).join(" ") & ")"
@@ -107,7 +109,7 @@ proc `$`*(self: Node): string =
   case self.typ
   of ntIdent, ntOperator, ntReal, ntChar, ntString, ntDebug: 
     result &= self.tok.min()
-  of ntSubscripted:
+  of ntSuperscripted, ntSubscripted:
     result &= fmt"{self.node}{self.num.lit}"
   of ntGrouping, ntArray:
     result &= self.nodes.mapIt($it).join(" ")
@@ -161,19 +163,31 @@ proc parseItem(self: Parser, topLevel: bool = false): Node =
     result = self.parseArray(tok)
   of ttDebug:
     result = Node(typ: ntDebug, tok: tok[])
+  of ttDefine:
+    let e = newVernError("Bindings can only be created in the top level")
+
+    if (let roll = rand(100.0); echo "roll: ", roll; roll > 99):
+      e.msg &= "; this isn't BQN, idiot"
+
+    e.addTrace(tok[].trace())
+    raise e
   else:
     let e = newVernError(fmt"Unexpected token '{tok[].lit}'")
     e.addTrace(tok[].trace())
     raise e
 
-  if (let next = self.peek(); next.isSome() and next.get[].typ == ttSubscriptNumber):
-    if result.typ notin {ntOperator, ntGrouping}:
-      let e = newVernError("Subscript is not allowed in this context")
-      e.addTrace(result.trace())
-      raise e
+  if (let next = self.peek(); next.isSome()):
+    case next.get[].typ
+    of ttSubscriptNumber:
+      if result.typ notin {ntOperator, ntGrouping}:
+        let e = newVernError("Subscript is not allowed in this context")
+        e.addTrace(result.trace())
+        raise e
 
-    result = Node(typ: ntSubscripted, num: next.get[], inner: result)
-    inc self.idx
+      result = Node(typ: ntSubscripted, num: next.get[], inner: result)
+      inc self.idx
+    else:
+      discard
 
 proc parseQuotation(self: Parser, anchor: ptr Token): Node =
   result = Node(typ: ntQuotation)
