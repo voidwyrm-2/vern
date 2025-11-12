@@ -8,7 +8,7 @@
 
 ## 0.15.1
 
-- (Possible fix) on Windows systems, the final character of files doesn't get read
+- (Possible fix) on Windows systems, the final character of files didn't get read
 
 ## 0.15.0
 
