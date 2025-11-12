@@ -63,7 +63,7 @@ type
 
   FileBuffer* = ref object of Buffer
     f: File
-    realEndOfFile: bool
+    realEndOfFile: int8 = -1
 
   StringBuffer* = ref object of Buffer
     str: string
@@ -90,16 +90,21 @@ func newFileBuffer*(f: File): FileBuffer =
   result.f = f
 
 method readChar*(self: FileBuffer): char =
-  self.f.readChar()
+  try:
+    result = self.f.readChar()
+  except EOFError:
+    result = '\0'
 
 method size*(self: FileBuffer): int64 =
   self.f.getFileSize
 
 method endOfFile*(self: FileBuffer): bool =
-  result = self.f.endOfFile and self.realEndOfFile
+  result = self.f.endOfFile and self.realEndOfFile == 0
 
-  if self.f.endOfFile:
-    self.realEndOfFile = true
+  if self.realEndOfFile > 0:
+    dec self.realEndOfFile
+  elif self.f.endOfFile and self.realEndOfFile < 0:
+    self.realEndOfFile = 2
 
 method index*(self: FileBuffer): int64 =
   -1

@@ -1,7 +1,7 @@
 # Package
 
-version       = "0.15.0"
-author        = "Nuclear"
+version       = "0.15.1"
+author        = "Nuclear Pasta"
 description   = "An array language with minimal unicode characters"
 license       = "Apache-2.0"
 srcDir        = "src"

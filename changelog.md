@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.15.1
+
+- (Possible fix) on Windows systems, the final character of files doesn't get read
+
 ## 0.15.0
 
 - Added 'urot' and 'ur' as escapes for '↺'
