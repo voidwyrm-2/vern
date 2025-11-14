@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.17.0
+
+- (Fix) arrays of Chars were able to hold Chars of incompatible shapes
+- (Fix) multi-character glyph escapes caused an invalid glyph error
+- (Fix) '=' and '≠' returned the wrong values in some cases
+- Error messages now have a bit of color
+- Arrays of Char are now converted into Chars
+- Equality of Char and Char, Chars and Array, Chars and Char, and Chars and Chars now works correctly
+- Added the '≍' (match) operator
+- '⋯' no longer works with Chars
+
 ## 0.16.0
 
 - Added the '⍨' (unfill) and '⋯' (explode) operators
@@ -14,9 +25,9 @@
 
 - Added 'urot' and 'ur' as escapes for '↺'
 - Added 'drot' and 'dr' as escapes for '↻'
-- (Fix) Bindings with an empty body caused a runtime crash
-- (Fix) Pervasive operations caused boxes to combine into deeper boxes
-- (Fix) Chars were unable to be added with Chars
+- (Fix) bindings with an empty body caused a runtime crash
+- (Fix) pervasive operations caused boxes to combine into deeper boxes
+- (Fix) chars were unable to be added with Chars
 - Box arrays now format with `|` separating items
 - Added the '-c/-clear' flag
 - The illegal character error message now shows the value of the character
@@ -100,7 +111,7 @@
 
 - The escape formatter currently only works in the REPL
 - Added the 'shortcuts' command to the REPL
-- (Fix) Unicode characters weren't being lexed correctly
+- (Fix) unicode characters weren't being lexed correctly
 - using △ (shape) on the Chars type is now valid
 
 ## 0.3.0

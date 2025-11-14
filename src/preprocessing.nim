@@ -97,6 +97,8 @@ proc collapseEscapes*(file: string, buf: Buffer): tuple[buf: seq[char], collapse
         while not buf.endOfFile and cur != '\\':
           value &= cur
           cycle()
+
+        cycle()
       elif cur in {',', '\''}:
         value = newStringOfCap(3)
 

@@ -1,8 +1,8 @@
 # Package
 
-version       = "0.16.0"
+version       = "0.17.0"
 author        = "Nuclear Pasta"
-description   = "An array language with minimal unicode characters"
+description   = "An array language about creating complexity from simplcity."
 license       = "Apache-2.0"
 srcDir        = "src"
 bin           = @["vern"]

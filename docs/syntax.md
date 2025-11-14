@@ -101,7 +101,7 @@ Bindings are immutable assignments, which can only be created at the top level.
 ```
 
 If the body of a binding is empty, it will take a value from the stack;  
-if the stack is empty, an binding binding is created.
+if the stack is empty, an empty binding is created.
 
 ## Subscripting
 

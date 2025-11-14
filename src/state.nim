@@ -47,8 +47,11 @@ type
       value: Value
 
   FillProc* = proc(typ: Type): Value {.closure.}
+  
+  GlobalState* = ref object
 
   State* = ref object
+    global*: GlobalState
     parent: State
     stack: seq[Value]
     bindings: TableRef[string, Binding]

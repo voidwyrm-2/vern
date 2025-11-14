@@ -117,6 +117,7 @@ Modulo values.
  - ⁅
 \.floor\, \.flo\ - ⌊
 \.ceiling\, \.ceil\
+
 #### `⁅` - Round
 
 > Monadic function
@@ -203,6 +204,34 @@ Checks for the inequality of two values; the result of `≠` will always be 0 or
 ```
    [1 2 3 4] [3 5 5 4] ≠
 [1 1 1 0]
+```
+
+#### `≍` - Match
+
+> Dyadic function
+
+> Shortcuts: `\.match\`, `\.mat\`, `\=`
+
+Checks if two values are exactly the same.
+
+```
+   [1 2 3 4] [3 2 5 4] ≍
+0
+```
+
+```
+   [5 6 7 8] [5 6 7 8] ≍
+1
+```
+
+```
+   6 6 ≍
+1
+```
+
+```
+   2 4 ≍
+0
 ```
 
 #### `#` - Length
@@ -715,14 +744,18 @@ If the given fill value is a quotation, that quotation will be executed when a f
 
 Returns the fill value.
 
+If no fill value is set, an error will occur.
+
+```
+   10~ ⍨
+10
+```
+
 ```
    ⍨
 Error: No fill value set
 Stacktrace:
  at repl:1:2
-
-   10~ ⍨
-10
 ```
 
 
@@ -731,11 +764,6 @@ Stacktrace:
 > Monadic function
 
 Deconstructs an array.
-
-```
-   "abc" ⋯
-['a 'b 'c]
-```
 
 ```
    ['a 'b 'c] ⋯

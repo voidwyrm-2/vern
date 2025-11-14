@@ -145,16 +145,18 @@ proc getShapeOfValues(shape: var seq[uint32], typ: Type, values: seq[Value]) =
   for value in values:
     if typ != value.typ and value.typ != tArray:
       raise newVernError(fmt"Array is of type {typ}, but an item of type {value.typ} was found")
-    elif value.typ == tArray and prevShape.len != value.shape.len:
+    elif value.typ in {tArray, tChars} and prevShape.len != value.shape().len:
       raise newVernError(fmt"Cannot combine arrays of ranks {prevShape.len} and {value.shape.len}")
-    elif value.typ == tArray and prevShape != value.shape:
-      raise newVernError(fmt"Cannot combine arrays of shapes {prevShape} and {value.shape}")
+    elif value.typ in {tArray, tChars} and prevShape != value.shape():
+      raise newVernError(fmt"Cannot combine arrays of shapes {prevShape} and {value.shape()}")
 
   if values.len > 0 and values[0] != nil:
     if values[0].typ == tArray:
       shape.getShapeOfValues(typ, values[0].values)
     elif values[0].typ == tChars:
       shape.add(uint32(values[0].chars.len))
+
+func newChars*(chars: seq[char]): Value
 
 func newArray*(values: varargs[Value]): Value =
   let sValues = values.toSeq()
@@ -171,10 +173,16 @@ func newArray*(values: varargs[Value]): Value =
   if shape.len == 0:
     shape.add(0)
 
-  Value(typ: tArray, arrTyp: arrTyp, shape: shape, values: sValues)
+  if arrTyp.isSome() and arrTyp.get == tChar and shape.len == 1:
+    newChars(values.mapIt(it.char))
+  else:
+    Value(typ: tArray, arrTyp: arrTyp, shape: shape, values: sValues)
 
 func newArray*(values: seq[Value], typ: Option[Type], shape: Shape): Value =
-  Value(typ: tArray, arrTyp: typ, shape: shape, values: values)
+  if typ.isSome() and typ.get == tChar and shape.len == 1:
+    newChars(values.mapIt(it.char))
+  else:
+    Value(typ: tArray, arrTyp: typ, shape: shape, values: values)
 
 func newArray*(values: seq[Value], typ: Type, shape: Shape): Value =
   newArray(values, some(typ), shape)
@@ -488,21 +496,40 @@ func `!=`*(self, other: Value): bool =
 
 proc eq*(self, other: Value, ne: bool = false): Value =
   var
-    hasValue: bool
+    hasValue: bool = true
     b: bool
 
   if cast[pointer](self) == cast[pointer](other):
-    return if ne: newReal(0) else: newReal(1)
+    let v = if ne: newReal(0) else: newReal(1)
 
+    case self.shape().len
+    of 0:
+      return v
+    of 1:
+      return newArray(newSeqOfLen(self.len, v), v.typ, self.shape())
+    else:
+      let shape = self.shape
+
+      result = newArray(newSeqOfLen(shape[^1], v), v.typ, self.shape())
+
+      for j in 1..<shape.len:
+        result = newArray(newSeqOfLen(shape[shape.len - 1 - j], result), v.typ, shape[shape.len - 1 - j..^1])
+
+      return
+  
   select (self.typ, other.typ):
     maybe (tReal, tReal):
       b = self.real == other.real
+      hasValue = false
+    maybe (tChar, tChar):
+      b = self.char == other.char
+      hasValue = false
     maybe (tArray, tArray):
       if self.shape != other.shape:
-        raise newVernError(fmt"Cannot join arrays of shapes {self.shape} and {other.shape}")
+        raise newvernerror(fmt"cannot compare arrays of shapes {self.shape} and {other.shape}")
 
       if self.values.len > 0 and other.values.len > 0 and self.arrTyp() != other.arrTyp():
-        raise newVernError(fmt"Cannot join arrays of types {self.arrTyp()} and {other.arrTyp()}")
+        raise newVernError(fmt"Cannot compare arrays of types {self.arrTyp()} and {other.arrTyp()}")
 
       let otherValues = other.values
 
@@ -512,20 +539,65 @@ proc eq*(self, other: Value, ne: bool = false): Value =
         arr.add(v.eq(otherValues[i], ne))
 
       result = newArray(arr)
-      hasValue = true
     maybe (tChars, tChars):
-      b = self.chars == other.chars
+      if self.shape() != other.shape():
+        raise newVernError(fmt"cannot compare arrays of shapes {self.shape} and {other.shape}")
+
+      var arr = newSeqOfCap[Value](self.len)
+
+      for (i, ch) in enumerate(self.chars):
+        arr.add(newReal(if ch == other.chars[i]: 1 else: 0))
+
+      result = newArray(arr)
+    maybe (tArray, tChars):
+      if self.shape() != other.shape():
+        raise newVernError(fmt"cannot compare arrays of shapes {self.shape} and {other.shape}")
+
+      if self.arrTyp.isSome() and self.typ != tChar:
+        return newArray(newSeqOfLen(self.len, newReal(0)))
+
+      var arr = newSeqOfCap[Value](self.len)
+
+      for (i, v) in enumerate(self.values):
+        arr.add(newReal(if v.char == other.chars[i]: 1 else: 0))
+
+      result = newArray(arr)
+    maybe (tChars, tArray):
+      if self.shape() != other.shape():
+        raise newVernError(fmt"cannot compare arrays of shapes {self.shape} and {other.shape}")
+
+      if other.arrTyp.isSome() and other.typ != tChar:
+        return newArray(newSeqOfLen(other.len, newReal(0)))
+
+      var arr = newSeqOfCap[Value](other.len)
+
+      for (i, v) in enumerate(other.values):
+        arr.add(newReal(if self.chars[i] == v.char: 1 else: 0))
+
+      result = newArray(arr)
+    maybe (tChar, tChars):
+      var arr = newSeqOfCap[Value](other.len)
+
+      for (i, ch) in enumerate(other.chars):
+        arr.add(newReal(if self.char == ch: 1 else: 0))
+
+      result = newArray(arr)
+    maybe (tChars, tChar):
+      var arr = newSeqOfCap[Value](self.len)
+
+      for (i, ch) in enumerate(self.chars):
+        arr.add(newReal(if ch == other.char: 1 else: 0))
+
+      result = newArray(arr)
     maybe (tBox, tBox):
       result = self.boxed.eq(other.boxed, ne)
-      hasValue = true
     maybe (tBox, _):
       result = self.boxed.eq(other, ne)
-      hasValue = true
     maybe (_, tBox):
       result = self.eq(other.boxed, ne)
-      hasValue = true
     maybe (_, _):
       b = false
+      hasValue = false
 
   if hasValue:
     return

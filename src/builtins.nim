@@ -88,6 +88,23 @@ addP("≠"):
 
   s.push(a.eq(b, true))
 
+# Match
+addP("≍"):
+  func all(v: Value): bool =
+    case v.typ
+    of tReal:
+      return v.real != 0
+    of tArray:
+      return v.values.allIt(all(it))
+    else:
+      panic(fmt"Found value of type {v.typ} (only Array or Real was expected) in func 'all' in Match impl")
+
+  let
+    b = s.pop(1)
+    a = s.pop(2)
+
+  s.push(if all(a.eq(b)): newReal(1) else: newReal(0))
+
 # Execute
 addP("!"):
   let quot = s.pop(1).needs(1, tQuote)
@@ -322,8 +339,12 @@ addP("⍨"):
 
 # Explode
 addP("⋯"):
-  let val = s.pop(1)
+  let val = s.pop(1).needs(1, tArray)
 
+  for v in val.values:
+    s.push(v)
+
+  #[
   case val.typ
   of tArray:
     for v in val.values:
@@ -337,3 +358,4 @@ addP("⋯"):
     s.push(newArray(vals, tChar, @[vals.len.uint32]))
   else:
     raise newVernError(fmt"Cannot explode type {val.typ}")
+  ]#

@@ -1,9 +1,10 @@
 multiply, mult, *: ×
 divide, div, %: ÷
+notequal, neq, n: ≠
+match, mat, =: ≍
 iota, io, i: ɩ
 shape, sha, sh: △
 scan, sca, sc, s: ⍀
-notequal, neq, n: ≠
 pop, po, p: ⌄
 box, bx, b: ■
 unbox, unbx, un, u: □

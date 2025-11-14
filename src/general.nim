@@ -40,6 +40,13 @@ func copy*[K, V](table: TableRef[K, V]): TableRef[K, V] =
     result[k] = v
 
 
+func newSeqOfLen*[T](len: Natural, elem: T): seq[T] =
+  result = newSeq[T](len)
+
+  for i in 0..<len:
+    result[i] = elem
+
+
 type
   VernError* = ref object of CatchableError
     stackTrace: seq[string]
@@ -51,11 +58,11 @@ func addTrace*(self: VernError, trace: string) =
   self.stackTrace.add(trace)
 
 func `$`*(self: VernError): string =
-  result = "Error: "
+  result = "\e[91mError:\e[0m "
   result &= self.msg
 
   if self.stackTrace.len > 0:
-    result &= "\nStacktrace:\n " & self.stackTrace.join("\n ")
+    result &= "\n\e[36mStacktrace:\e[0m\n " & self.stackTrace.join("\n ")
 
 
 type

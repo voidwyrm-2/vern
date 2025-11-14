@@ -45,7 +45,7 @@ const
     ))
     .join("\n")
 
-proc repl() =
+proc repl*() =
   if not replHistoryFile.fileExists():
     replHistoryFile.writeFile("")
 
